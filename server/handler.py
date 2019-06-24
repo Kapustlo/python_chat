@@ -10,6 +10,7 @@ def incorrect_json(value=""):
     value = validate_value(value)
     return json.dumps({
         "status": "error",
+        "fatal": True,
         "text": "Invalid json format",
         "value": value
     }).encode("utf-8")
@@ -18,6 +19,7 @@ def username_not_unique(username=""):
     username = validate_value(username)
     return json.dumps({
         "status": "error",
+        "fatal": True,
         "text": "Username is not unique",
         "value": username
     }).encode("utf-8")
@@ -25,6 +27,7 @@ def username_not_unique(username=""):
 def failed_cridentials(value=""):
     return json.dumps({
         "status": "error",
+        "fatal": True,
         "text": "Incorrect cridentials",
         "value": value
     }).encode("utf-8")
