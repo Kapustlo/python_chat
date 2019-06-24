@@ -106,7 +106,7 @@ while not stop:
                     if client != address:
                         server_socket.sendto(message.encode("utf-8"), client)
             else:
-                server_socket.sendto(error.encode("utf-8"), client)
+                server_socket.sendto(error, address)
 
         except Exception as e:
             print(e)
