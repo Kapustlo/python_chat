@@ -37,6 +37,6 @@ def max_conns_ecc():
     return json.dumps({
         "status": "error",
         "fatal": True,
-        "text": "Incorrect cridentials",
+        "text": "Could not connect: maximum users reached",
         "value": ""
     }).encode("utf-8")
