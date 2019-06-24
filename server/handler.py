@@ -31,3 +31,11 @@ def failed_cridentials(value=""):
         "text": "Incorrect cridentials",
         "value": value
     }).encode("utf-8")
+
+def max_conns_ecc():
+    return json.dumps({
+        "status": "error",
+        "fatal": True,
+        "text": "Incorrect cridentials",
+        "value": value
+    }).encode("utf-8")
