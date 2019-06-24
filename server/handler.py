@@ -25,6 +25,7 @@ def username_not_unique(username=""):
     }).encode("utf-8")
 
 def failed_cridentials(value=""):
+    value = validate_value(value)
     return json.dumps({
         "status": "error",
         "fatal": True,
@@ -37,5 +38,5 @@ def max_conns_ecc():
         "status": "error",
         "fatal": True,
         "text": "Incorrect cridentials",
-        "value": value
+        "value": ""
     }).encode("utf-8")

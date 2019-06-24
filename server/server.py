@@ -33,36 +33,41 @@ while not stop:
             if address not in clients:
                 print("{} connected".format(address))
 
-                username = parsed_data["username"]
-                came_from = parsed_data["from"]
+                total_clients = len(clients.keys())
 
-                if username == came_from:
-                    username_unique = True
+                if total_clients < config.get("max_conns"):
+                    username = parsed_data["username"]
+                    came_from = parsed_data["from"]
 
-                    for client in clients:
-                        client_username = client["username"]
+                    if username == came_from:
+                        username_unique = True
 
-                        if client_username == username:
-                            error = handler.username_not_unique(username)
-                            break;
+                        for client in clients:
+                            client_username = client["username"]
 
-                    if username_unique:
+                            if client_username == username:
+                                error = handler.username_not_unique(username)
+                                break;
 
-                        clients[address] = {
-                            "messages": [],
-                            "username": username
-                        }
+                        if username_unique:
 
-                        print("{} logged in | total users: {}".format(username, len(clients.keys())))
+                            clients[address] = {
+                                "messages": [],
+                                "username": username
+                            }
 
-                        message = json.dumps({
-                            "status": "success",
-                            "address": config.get("host"),
-                            "from": "Server",
-                            "text": "{} joined".format(username)
-                        })
+                            print("{} logged in | total users: {}".format(username, len(clients.keys())))
+
+                            message = json.dumps({
+                                "status": "success",
+                                "address": config.get("host"),
+                                "from": "Server",
+                                "text": "{} joined".format(username)
+                            })
+                    else:
+                        error = handler.failed_cridentials()
                 else:
-                    error = handler.failed_cridentials()
+                    error = handler.max_conns_ecc()
 
             else:
                 client = clients[address]
