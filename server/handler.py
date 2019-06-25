@@ -1,8 +1,10 @@
 import json
 
 def validate_value(value):
-    if type(value) != type(""):
+    try:
         value = value.decode("utf-8")
+    except:
+        value = str(value)
 
     return value
 

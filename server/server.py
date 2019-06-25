@@ -92,7 +92,7 @@ while not stop:
                             "text": text
                         })
                     else:
-                        error = handler.max_conns_ecc(max_length)
+                        error = handler.msg_length_ecc(max_length)
 
                 elif type == "leave":
                     del clients[address]
