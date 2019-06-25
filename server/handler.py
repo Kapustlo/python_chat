@@ -40,3 +40,12 @@ def max_conns_ecc():
         "text": "Could not connect: maximum users reached",
         "value": ""
     }).encode("utf-8")
+
+def msg_length_ecc(length=""):
+    length = validate_value(length)
+    return json.dumps({
+        "status": "error",
+        "fatal": False,
+        "text": "Message is too long, maximum length is " + length,
+        "value": ""
+    }).encode("utf-8")
