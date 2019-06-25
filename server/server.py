@@ -77,19 +77,22 @@ while not stop:
 
                 if type == "message":
                     text = parsed_data["text"]
+                    max_length = config.get("max_length")
+                    if len(text) <= max_length:
+                        for client in clients:
+                            if client == address:
+                                clients[client]["messages"].append(text)
+                                print("{} sent: \"{}\" | total messages: {}".format(username, text, len(clients[client]["messages"])))
+                                break
 
-                    for client in clients:
-                        if client == address:
-                            clients[client]["messages"].append(text)
-                            print("{} sent: \"{}\" | total messages: {}".format(username, text, len(clients[client]["messages"])))
-                            break
-
-                    message = json.dumps({
-                        "status": "success",
-                        "from": username,
-                        "address": address,
-                        "text": text
-                    })
+                        message = json.dumps({
+                            "status": "success",
+                            "from": username,
+                            "address": address,
+                            "text": text
+                        })
+                    else:
+                        error = handler.max_conns_ecc(max_length)
 
                 elif type == "leave":
                     del clients[address]
