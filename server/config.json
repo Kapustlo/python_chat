@@ -2,5 +2,6 @@
   "host": "25.56.42.255",
   "port": 80,
   "buf_size": 1024,
-  "max_conns": 0
+  "max_conns": 10,
+  "max_length": 2
 }
