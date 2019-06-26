@@ -20,7 +20,6 @@ MAX_CONNS = config.get("max_conns")
 
 handler = Handler(CHARSET)
 
-
 connection_data = (HOST, PORT)
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -79,6 +78,9 @@ while not stop:
                             "from": "Server",
                             "text": "{} joined".format(username)
                         })
+
+                        server_socket.sendto(message.encode(CHARSET), address)
+                        continue
                 else:
                     error = handler.failed_cridentials()
             else:
