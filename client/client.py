@@ -60,6 +60,7 @@ while not shutdown:
         })
         socket_server.sendto(message.encode("utf-8"), server)
         joined = True
+        time.sleep(.1)
     else:
         try:
             message = input("[{}]: ".format(username))
