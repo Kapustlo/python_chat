@@ -13,7 +13,7 @@ class Handler:
         return value
 
     def incorrect_json(self, value=""):
-        value = validate_value(value)
+        value = self.validate_value(value)
         return json.dumps({
             "status": "error",
             "fatal": True,
@@ -22,7 +22,7 @@ class Handler:
         }).encode(self.charset)
 
     def username_not_unique(self, username=""):
-        username = validate_value(username)
+        username = self.validate_value(username)
         return json.dumps({
             "status": "error",
             "fatal": True,
@@ -31,7 +31,7 @@ class Handler:
         }).encode(self.charset)
 
     def failed_cridentials(self, value=""):
-        value = validate_value(value)
+        value = self.validate_value(value)
         return json.dumps({
             "status": "error",
             "fatal": True,
