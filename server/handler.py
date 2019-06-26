@@ -2,7 +2,6 @@ import json
 
 class Handler:
     def __init__(self, charset="utf-8"):
-        super(, self).__init__()
         self.charset = charset
 
     def validate_value(self, value):
