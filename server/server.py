@@ -10,8 +10,9 @@ def parse_response_data(data):
     return json.loads(data.decode("utf-8"))
 
 config = get_config()
-connection_data = (config.get("host"), config.get("port"))
 
+connection_data = (config.get("host"), config.get("port"))
+CHARSET = config.get("charset")
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_socket.bind(connection_data)
 
