@@ -1,4 +1,4 @@
-import socket, json
+import socket, json, datetime
 from handler import Handler
 
 def get_config(path="config.json"):
@@ -90,7 +90,8 @@ while not stop:
                     for client in clients:
                         if client == address:
                             clients[client]["messages"].append(text)
-                            print("{} sent: \"{}\" | total messages: {}".format(username, text, len(clients[client]["messages"])))
+                            time_now = str(datetime.datetime.now()).split(".")[0]
+                            print("[{}] {} sent: \"{}\" | total messages: {}".format(time_now, username, text, len(clients[client]["messages"])))
                             break
 
                     message = json.dumps({
