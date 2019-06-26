@@ -11,10 +11,17 @@ def parse_response_data(data, charset):
 
 config = get_config()
 
-connection_data = (config.get("host"), config.get("port"))
+HOST = config.get("host")
+PORT = config.get("port")
 CHARSET = config.get("charset")
+MAX_MESSAGE_LENGTH = config.get("max_length")
+BUF_SIZE = config.get("buf_size")
+MAX_CONNS = config.get("max_conns")
 
 handler = Handler(CHARSET)
+
+
+connection_data = (HOST, PORT)
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_socket.bind(connection_data)
@@ -27,7 +34,7 @@ stop = False
 
 while not stop:
     try:
-        data, address = server_socket.recvfrom(config.get("buf_size"))
+        data, address = server_socket.recvfrom(BUF_SIZE)
 
         error = None
 
@@ -43,7 +50,7 @@ while not stop:
 
             total_clients = len(clients.keys())
 
-            if total_clients < config.get("max_conns"):
+            if total_clients < MAX_CONNS:
                 username = parsed_data["username"]
                 came_from = parsed_data["from"]
 
@@ -68,7 +75,7 @@ while not stop:
 
                         message = json.dumps({
                             "status": "success",
-                            "address": config.get("host"),
+                            "address": HOST,
                             "from": "Server",
                             "text": "{} joined".format(username)
                         })
@@ -85,8 +92,7 @@ while not stop:
 
             if type == "message":
                 text = parsed_data["text"]
-                max_length = config.get("max_length")
-                if len(text) <= max_length:
+                if len(text) <= MAX_MESSAGE_LENGTH:
                     for client in clients:
                         if client == address:
                             clients[client]["messages"].append(text)
@@ -101,7 +107,7 @@ while not stop:
                         "text": text
                     })
                 else:
-                    error = handler.msg_length_ecc(max_length)
+                    error = handler.msg_length_ecc(MAX_MESSAGE_LENGTH)
 
             elif type == "leave":
                 del clients[address]
