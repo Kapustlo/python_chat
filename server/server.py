@@ -1,18 +1,21 @@
 import socket, json
-import handler
+from handler import Handler
 
 def get_config(path="config.json"):
     with open(path, "r") as file:
         data = file.read()
         return json.loads(data)
 
-def parse_response_data(data):
-    return json.loads(data.decode("utf-8"))
+def parse_response_data(data, charset):
+    return json.loads(data.decode(charset))
 
 config = get_config()
 
 connection_data = (config.get("host"), config.get("port"))
 CHARSET = config.get("charset")
+
+handler = Handler(CHARSET)
+
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_socket.bind(connection_data)
 
@@ -29,7 +32,7 @@ while not stop:
         error = None
 
         try:
-            parsed_data = parse_response_data(data)
+            parsed_data = parse_response_data(data, CHARSET)
         except Exception as e:
             print(e)
             server_socket.sendto(handler.incorrect_json(data), address)
@@ -112,7 +115,7 @@ while not stop:
         if not error:
             for client in clients:
                 if client != address:
-                    server_socket.sendto(message.encode("utf-8"), client)
+                    server_socket.sendto(message.encode(CHARSET), client)
         else:
             server_socket.sendto(error, address)
 
