@@ -30,12 +30,12 @@ class Handler:
             "value": username
         }).encode(self.charset)
 
-    def failed_cridentials(self, value=""):
+    def failed_credentials(self, value=""):
         value = self.validate_value(value)
         return json.dumps({
             "status": "error",
             "fatal": True,
-            "text": "Incorrect cridentials",
+            "text": "Incorrect credentials",
             "value": value
         }).encode(self.charset)
 

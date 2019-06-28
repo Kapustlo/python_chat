@@ -82,7 +82,7 @@ while not stop:
                         server_socket.sendto(message.encode(CHARSET), address)
                         continue
                 else:
-                    error = handler.failed_cridentials()
+                    error = handler.failed_credentials()
             else:
                 error = handler.max_conns_ecc()
 
@@ -123,8 +123,9 @@ while not stop:
 
         if not error:
             for client in clients:
-                if client != address:
-                    server_socket.sendto(message.encode(CHARSET), client)
+                if client != address or True:
+                    x = server_socket.sendto(message.encode(CHARSET), client)
+                    print(x)
         else:
             server_socket.sendto(error, address)
 
