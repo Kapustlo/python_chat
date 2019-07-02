@@ -1,16 +1,9 @@
-import socket, threading, json, time
+import socket, threading, json, time, config
 
-def get_config(path="config.json"):
-    with open(path, "r") as file:
-        data = file.read()
-        return json.loads(data)
-
-config = get_config()
-
-server = (config.get("server")["host"], config.get("server")["port"])
+server = (config.SERVER["host"], config.SERVER["port"])
 
 socket_server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-socket_server.bind((config.get("host"), config.get("port")))
+socket_server.bind((config.HOST, config.PORT))
 socket_server.setblocking(0)
 
 shutdown = False
@@ -39,7 +32,7 @@ def reciever(sock):
     while not shutdown:
         try:
             while True:
-                data, address = sock.recvfrom(config.get("buf_size"))
+                data, address = sock.recvfrom(config.BUF_SIZE)
                 print(get_response_text(parse_response_data(data)))
                 time.sleep(.1)
         except:
@@ -56,7 +49,7 @@ while not shutdown:
             "type": "join",
             "username": username,
             "from": username,
-            "address": config.get("address")
+            "address": config.HOST
         })
         socket_server.sendto(message.encode("utf-8"), server)
         joined = True
@@ -68,14 +61,14 @@ while not shutdown:
                 "type": "message",
                 "text": message,
                 "from": username,
-                "address": config.get("address")
+                "address": config.HOST
             })
             socket_server.sendto(message.encode("utf-8"), server)
         except KeyboardInterrupt:
             message = json.dumps({
                 "type": "leave",
                 "from": username,
-                "address": config.get("address")
+                "address": config.HOST
             })
 
             socket_server.sendto(message.encode("utf-8"), server)
