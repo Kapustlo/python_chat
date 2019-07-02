@@ -21,9 +21,8 @@ def get_response_text(data):
 
         return "[{}]: {}".format(username, text)
 
-    elif status == "info":
-        return data["text"]
 
+    return data["text"]
 
 def parse_response_data(data):
     return json.loads(data.decode("utf-8"))
