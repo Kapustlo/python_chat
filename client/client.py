@@ -1,21 +1,5 @@
 import socket, threading, json, time
 
-def get_config(path="config.json"):
-    with open(path, "r") as file:
-        return json.loads(file.read())
-
-config = get_config()
-
-server = (config["server"]["host"], config["server"]["port"])
-
-socket_server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-socket_server.bind((config["host"], config["port"]))
-socket_server.setblocking(0)
-
-shutdown = False
-
-joined = False
-
 def get_response_text(data):
     status = data["status"]
     if status == "error":
@@ -40,6 +24,21 @@ def reciever(sock):
                 print(get_response_text(parse_response_data(data)))
         except:
             pass
+
+def get_config(path="config.json"):
+    with open(path, "r") as file:
+        return json.loads(file.read())
+
+config = get_config()
+
+server = (config["server"]["host"], config["server"]["port"])
+
+socket_server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+socket_server.bind((config["host"], config["port"]))
+socket_server.setblocking(0)
+
+shutdown = False
+joined = False
 
 username = input("Enter your username: ")
 
