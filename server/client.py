@@ -8,3 +8,6 @@ class Client:
 
     def set_username(self, username):
         self.username = username
+
+    def set_address(self, address):
+        self.address = address
