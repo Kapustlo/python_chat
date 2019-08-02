@@ -33,47 +33,48 @@ config = get_config()
 
 server = (config["server"]["host"], config["server"]["port"])
 
-socket_server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-socket_server.bind((config["host"], config["port"]))
-socket_server.setblocking(0)
+if __name__ == "__main__":
+    socket_server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    socket_server.bind((config["host"], config["port"]))
+    socket_server.setblocking(0)
 
-shutdown = False
-joined = False
+    shutdown = False
+    joined = False
 
-username = input("Enter your username: ")
+    username = input("Enter your username: ")
 
-thread = threading.Thread(target=reciever, args=(socket_server,))
-thread.start()
+    thread = threading.Thread(target=reciever, args=(socket_server,))
+    thread.start()
 
-while not shutdown:
-    if not joined:
-        data = {
-            "type": "join",
-            "username": username,
-            "from": username,
-            "address": config["host"]
-        }
-        joined = True
-    else:
-        try:
-            message = input("[{}]: ".format(username))
+    while not shutdown:
+        if not joined:
             data = {
-                "type": "message",
-                "text": message,
+                "type": "join",
+                "username": username,
                 "from": username,
                 "address": config["host"]
             }
-        except KeyboardInterrupt:
-            data = {
-                "type": "leave",
-                "from": username,
-                "address": config["host"]
-            }
+            joined = True
+        else:
+            try:
+                message = input("[{}]: ".format(username))
+                data = {
+                    "type": "message",
+                    "text": message,
+                    "from": username,
+                    "address": config["host"]
+                }
+            except KeyboardInterrupt:
+                data = {
+                    "type": "leave",
+                    "from": username,
+                    "address": config["host"]
+                }
 
-            shutdown = True
+                shutdown = True
 
-    socket_server.sendto(json.dumps(data).encode("utf-8"), server)
+        socket_server.sendto(json.dumps(data).encode("utf-8"), server)
 
-thread.join()
+    thread.join()
 
-socket_server.close()
+    socket_server.close()
