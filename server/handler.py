@@ -55,3 +55,11 @@ class Handler:
             "text": "Message is too long, maximum length is " + length,
             "value": ""
         }).encode(self.charset)
+
+    def invalid_data(self):
+        return json.dumps({
+            "status": "error",
+            "fatal": True,
+            "text": "Invalid data received",
+            "value": ""
+        }).encode(self.charset)
