@@ -35,14 +35,15 @@ class Server:
         self.__main_thread__.join()
 
     def is_user_online(self, address):
-        return address in self.clients
+        for client_address in self.clients:
+            if client_address[0] == address[0]:
+                return True
 
     def __add_user(self, address, username):
         self.clients[address] = client.Client(address, username)
 
     def __remove_user(self, address):
         if address in self.clients:
-            print("")
             del self.clients[address]
 
     def __login_user(self, parsed_data, address):
@@ -57,17 +58,19 @@ class Server:
         username = parsed_data["username"]
 
         for client in self.clients:
-            client_username = client["username"]
+            client_username = self.clients[client].get_username()
 
             if client_username == username:
                 return self.__handler__.username_not_unique(username)
 
         self.__add_user(address, username)
 
+        print(self.clients)
+
         print("{} logged in | total users: {}".format(username, len(self.clients.keys())))
 
         return {
-            "status": "success",
+            "status": "info",
             "address": self.address[0],
             "from": "Server",
             "text": "{} joined".format(username)
@@ -85,7 +88,7 @@ class Server:
                 return self.__handler__.msg_length_ecc(self.MAX_MESSAGE_LENGTH)
 
             time_now = str(datetime.datetime.now()).split(".")[0]
-            print("[{}] {} sent: \"{}\"".format(time_now, username, text))
+            print("[{}] {}: {}".format(time_now, username, text))
 
             return {
                 "status": "success",
@@ -106,9 +109,22 @@ class Server:
                 "text": "[Server]: {} left".format(username)
             }
 
-    def __send_public_message(self, response, address):
+        elif type == "join":
+            user = self.clients[address]
+            old_username = user.get_username()
+            user.set_username(username)
+            self.clients[address] = user
+            print(self.clients[address].get_username())
+            return {
+                "status": "info",
+                "address": self.address[0],
+                "from": "Server",
+                "text": "[Server]: {} reconnected as {}".format(old_username, username)
+            }
+
+    def __send_public_message(self, response, address, status):
         for client in self.clients:
-            if client != address:
+            if client != address or status == "info":
                 self.server_socket.sendto(response, client)
 
     def __run(self):
@@ -119,13 +135,10 @@ class Server:
 
             try:
                 parsed_data = self.parse_response_data(data)
-                print(parsed_data)
+                response = self.__proceed_message(parsed_data, address) if self.is_user_online(address) else self.__login_user(parsed_data, address)
             except Exception as e:
                 print(e)
-                self.server_socket.sendto(self.__handler__.invalid_data(data), address)
-                continue
-
-            response = self.__proceed_message(parsed_data, address) if self.is_user_online(address) else self.__login_user(parsed_data, address)
+                response = self.__handler__.invalid_data(data)
 
             status = response["status"]
 
@@ -134,7 +147,7 @@ class Server:
             if status == "error":
                 server_socket.sendto(response, address)
             else:
-                threading.Thread(target=self.__send_public_message, args=(response, address), daemon=True).start()
+                threading.Thread(target=self.__send_public_message, args=(response, address, status), daemon=True).start()
 
     def start(self):
         self.__main_thread__ = threading.Thread(target = self.__run, daemon=True)
