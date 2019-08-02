@@ -1,9 +1,15 @@
-import socket, threading, json, time, config
+import socket, threading, json, time
 
-server = (config.SERVER["host"], config.SERVER["port"])
+def get_config(path="config.json"):
+    with open(path, "r") as file:
+        return json.loads(file.read())
+
+config = get_config()
+
+server = (config["server"]["host"], config["server"]["port"])
 
 socket_server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-socket_server.bind((config.HOST, config.PORT))
+socket_server.bind((config["host"], config["port"]))
 socket_server.setblocking(0)
 
 shutdown = False
@@ -21,7 +27,6 @@ def get_response_text(data):
 
         return "[{}]: {}".format(username, text)
 
-
     return data["text"]
 
 def parse_response_data(data):
@@ -31,49 +36,46 @@ def reciever(sock):
     while not shutdown:
         try:
             while True:
-                data, address = sock.recvfrom(config.BUF_SIZE)
+                data, address = sock.recvfrom(config["buf_size"])
                 print(get_response_text(parse_response_data(data)))
-                time.sleep(.1)
+                time.sleep(.01)
         except:
             pass
 
 username = input("Enter your username: ")
 
-r = threading.Thread(target=reciever, args=(socket_server,))
-r.start()
+thread = threading.Thread(target=reciever, args=(socket_server,))
+thread.start()
 
 while not shutdown:
     if not joined:
-        message = json.dumps({
+        data = {
             "type": "join",
             "username": username,
             "from": username,
-            "address": config.HOST
-        })
-        socket_server.sendto(message.encode("utf-8"), server)
+            "address": config["host"]
+        }
         joined = True
-        time.sleep(.1)
     else:
         try:
             message = input("[{}]: ".format(username))
-            message = json.dumps({
+            data = {
                 "type": "message",
                 "text": message,
                 "from": username,
-                "address": config.HOST
-            })
-            socket_server.sendto(message.encode("utf-8"), server)
-        except KeyboardInterrupt:
-            message = json.dumps({
+                "address": config["host"]
+            }
+        except Exception:
+            data = {
                 "type": "leave",
                 "from": username,
-                "address": config.HOST
-            })
-
-            socket_server.sendto(message.encode("utf-8"), server)
+                "address": config["host"]
+            }
 
             shutdown = True
 
-r.join()
+    socket_server.sendto(json.dumps(data).encode("utf-8"), server)
+
+thread.join()
 
 socket_server.close()
