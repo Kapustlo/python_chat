@@ -42,9 +42,12 @@ class Server:
 
     def __remove_user(self, address):
         if address in self.clients:
+            print("")
             del self.clients[address]
 
     def __login_user(self, parsed_data, address):
+
+        print("{} connected".format(address))
 
         total_clients = len(self.clients.keys())
 
@@ -116,16 +119,13 @@ class Server:
 
             try:
                 parsed_data = self.parse_response_data(data)
+                print(parsed_data)
             except Exception as e:
                 print(e)
                 self.server_socket.sendto(self.__handler__.invalid_data(data), address)
                 continue
 
-            if not self.is_user_online(address):
-                print("{} connected".format(address))
-                response = self.__login_user(parsed_data, address)
-            else:
-                response = self.__proceed_message(parsed_data, address)
+            response = self.__proceed_message(parsed_data, address) if self.is_user_online(address) else self.__login_user(parsed_data, address)
 
             status = response["status"]
 
