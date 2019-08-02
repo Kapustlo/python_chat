@@ -38,7 +38,6 @@ def reciever(sock):
             while True:
                 data, address = sock.recvfrom(config["buf_size"])
                 print(get_response_text(parse_response_data(data)))
-                time.sleep(.01)
         except:
             pass
 
@@ -65,7 +64,7 @@ while not shutdown:
                 "from": username,
                 "address": config["host"]
             }
-        except Exception:
+        except KeyboardInterrupt:
             data = {
                 "type": "leave",
                 "from": username,
