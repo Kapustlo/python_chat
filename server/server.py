@@ -1,135 +1,141 @@
-import socket, json, datetime
-from handler import Handler
+import socket
+import threading
+import json
+import datetime
 
-def get_config(path="config.json"):
-    with open(path, "r") as file:
-        data = file.read()
-        return json.loads(data)
+import client
+import handler
 
-def parse_response_data(data, charset):
-    return json.loads(data.decode(charset))
+class Server:
+    def __init__(self, address, config):
+        self.address = address
+        self.stop = True
 
-config = get_config()
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.server_socket.bind(address)
 
-HOST = config.get("host")
-PORT = config.get("port")
-CHARSET = config.get("charset")
-MAX_MESSAGE_LENGTH = config.get("max_length")
-BUF_SIZE = config.get("buf_size")
-MAX_CONNS = config.get("max_conns")
+        self.client_increment = 0
+        self.clients = {}
 
-handler = Handler(CHARSET)
+        self.__main_thread__ = None
 
-connection_data = (HOST, PORT)
+        self.CHARSET = config.get("charset") if config.get("charset") else "utf-8"
+        self.BUF_SIZE = config.get("buf_size") if config.get("buf_size") else 1024
+        self.MAX_MESSAGE_LENGTH = config.get("max_length") if config.get("max_length") else 32
+        self.MAX_CONNS = config.get("max_conns") if config.get("max_conns") else 10
 
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server_socket.bind(connection_data)
+        self.__handler__ = handler.Handler(self.CHARSET)
 
-print("Server started {}".format(connection_data))
+    def parse_response_data(self, data):
+        return json.loads(data.decode(self.CHARSET))
 
-clients = {}
+    def stop_server(self):
+        self.stop = True
+        self.server_socket.close()
+        self.__main_thread__.join()
 
-stop = False
+    def is_user_online(self, address):
+        return address in self.clients
 
-while not stop:
-    try:
-        data, address = server_socket.recvfrom(BUF_SIZE)
+    def __add_user(self, address, username):
+        self.clients[address] = client.Client(address, username)
 
-        error = None
+    def __remove_user(self, address):
+        if address in self.clients:
+            del self.clients[address]
 
-        try:
-            parsed_data = parse_response_data(data, CHARSET)
-        except Exception as e:
-            print(e)
-            server_socket.sendto(handler.incorrect_json(data), address)
-            continue
+    def __login_user(self, parsed_data, address):
 
-        if address not in clients:
-            print("{} connected".format(address))
+        total_clients = len(self.clients.keys())
 
-            total_clients = len(clients.keys())
+        if total_clients > self.MAX_CONNS:
+            return self.__handler__.max_conns_ecc()
 
-            if total_clients < MAX_CONNS:
-                username = parsed_data["username"]
-                came_from = parsed_data["from"]
+        username = parsed_data["username"]
 
-                if username == came_from:
-                    username_unique = True
+        for client in self.clients:
+            client_username = client["username"]
 
-                    for client in clients:
-                        client_username = client["username"]
+            if client_username == username:
+                return self.__handler__.username_not_unique(username)
 
-                        if client_username == username:
-                            error = handler.username_not_unique(username)
-                            break;
+        self.__add_user(address, username)
 
-                    if username_unique:
+        print("{} logged in | total users: {}".format(username, len(self.clients.keys())))
 
-                        clients[address] = {
-                            "messages": [],
-                            "username": username
-                        }
+        return {
+            "status": "success",
+            "address": self.address[0],
+            "from": "Server",
+            "text": "{} joined".format(username)
+        }
 
-                        print("{} logged in | total users: {}".format(username, len(clients.keys())))
+    def __proceed_message(self, parsed_data, address):
+        client = self.clients[address]
+        username = client.get_username()
 
-                        message = json.dumps({
-                            "status": "success",
-                            "address": HOST,
-                            "from": "Server",
-                            "text": "{} joined".format(username)
-                        })
+        type = parsed_data["type"]
 
-                        server_socket.sendto(message.encode(CHARSET), address)
-                        continue
-                else:
-                    error = handler.failed_credentials()
+        if type == "message":
+            text = parsed_data["text"]
+            if len(text) > self.MAX_MESSAGE_LENGTH:
+                return self.__handler__.msg_length_ecc(self.MAX_MESSAGE_LENGTH)
+
+            time_now = str(datetime.datetime.now()).split(".")[0]
+            print("[{}] {} sent: \"{}\"".format(time_now, username, text))
+
+            return {
+                "status": "success",
+                "from": username,
+                "address": address,
+                "text": text
+            }
+
+        elif type == "leave":
+            self.__remove_user(address)
+
+            print("{} left | total users: {}".format(username, len(self.clients.keys())))
+
+            return {
+                "status": "info",
+                "from": username,
+                "address": address,
+                "text": "[Server]: {} left".format(username)
+            }
+
+    def __send_public_message(self, response, address):
+        for client in self.clients:
+            if client != address:
+                self.server_socket.sendto(response, client)
+
+    def __run(self):
+        self.stop = False
+
+        while not self.stop:
+            data, address = self.server_socket.recvfrom(self.BUF_SIZE)
+
+            try:
+                parsed_data = self.parse_response_data(data)
+            except Exception as e:
+                print(e)
+                self.server_socket.sendto(self.__handler__.invalid_data(data), address)
+                continue
+
+            if not self.is_user_online(address):
+                print("{} connected".format(address))
+                response = self.__login_user(parsed_data, address)
             else:
-                error = handler.max_conns_ecc()
+                response = self.__proceed_message(parsed_data, address)
 
-        else:
-            client = clients[address]
-            username = client["username"]
+            status = response["status"]
 
-            type = parsed_data["type"]
+            response = json.dumps(response).encode(self.CHARSET)
 
-            if type == "message":
-                text = parsed_data["text"]
-                if len(text) <= MAX_MESSAGE_LENGTH:
-                    for client in clients:
-                        if client == address:
-                            clients[client]["messages"].append(text)
-                            time_now = str(datetime.datetime.now()).split(".")[0]
-                            print("[{}] {} sent: \"{}\" | total messages: {}".format(time_now, username, text, len(clients[client]["messages"])))
-                            break
+            if status == "error":
+                server_socket.sendto(response, address)
+            else:
+                threading.Thread(target=self.__send_public_message, args=(response, address), daemon=True).start()
 
-                    message = json.dumps({
-                        "status": "success",
-                        "from": username,
-                        "address": address,
-                        "text": text
-                    })
-                else:
-                    error = handler.msg_length_ecc(MAX_MESSAGE_LENGTH)
-
-            elif type == "leave":
-                del clients[address]
-                print("{} left | total users: {}".format(username, len(clients.keys())))
-                message = json.dumps({
-                    "status": "info",
-                    "from": username,
-                    "address": address,
-                    "text": "[Server]: {} left".format(username)
-                })
-
-        if not error:
-            for client in clients:
-                if client != address or True:
-                    x = server_socket.sendto(message.encode(CHARSET), client)
-                    print(x)
-        else:
-            server_socket.sendto(error, address)
-
-    except KeyboardInterrupt:
-        stop = True
-
-server_socket.close()
+    def start(self):
+        self.__main_thread__ = threading.Thread(target = self.__run, daemon=True)
+        self.__main_thread__.start()
