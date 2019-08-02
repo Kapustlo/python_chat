@@ -12,7 +12,7 @@ def parse_response_data(data):
 config = get_config()
 connection_data = (config.get("host"), config.get("port"))
 
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind(connection_data)
 
 print("Server started {}".format(connection_data))
@@ -96,12 +96,13 @@ while not stop:
                         "text": "[Server]: {} left".format(username)
                     })
 
-            if not error:
-                for client in clients:
-                    if client != address:
-                        server_socket.sendto(message.encode("utf-8"), client)
-            else:
+            if error:
                 server_socket.sendto(error.encode("utf-8"), client)
+                continue
+
+            for client in clients:
+                if client != address:
+                    server_socket.sendto(message.encode("utf-8"), client)
 
         except Exception as e:
             print(e)
