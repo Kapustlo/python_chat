@@ -23,6 +23,7 @@ def username_not_unique(username=""):
     }).encode("utf-8")
 
 def failed_cridentials(value=""):
+    value = validate_value(value)
     return json.dumps({
         "status": "error",
         "text": "Incorrect cridentials",
