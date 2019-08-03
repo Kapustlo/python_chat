@@ -64,6 +64,8 @@ class Client:
         self.socket_server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket_server.bind(self.address)
         self.socket_server.setblocking(0)
+        socket_address = self.socket_server.getsockname()
+        print("Opened socket on {}:{}".format(socket_address[0], socket_address[1]))
 
         self.__main_thread__ = threading.Thread(target=self.reciever, args=(self.socket_server,))
         self.__main_thread__.start()
