@@ -15,6 +15,8 @@ class Client:
         self.connected = False
         self.failed = False
 
+        self.CHARSET = config.get("charset") if config.get("charset") or "utf-8"
+
         self.timeout = 5
 
     def _get_response_text(self, data):
@@ -31,7 +33,7 @@ class Client:
         return data["text"]
 
     def _parse_response_data(self, data):
-        return json.loads(data.decode("utf-8"))
+        return json.loads(data.decode(self.CHARSET))
 
     def reciever(self, sock):
         print("Trying to connect to the server...")
@@ -100,7 +102,7 @@ class Client:
                     self.stop()
 
 
-            self.socket_server.sendto(json.dumps(data).encode("utf-8"), self.server)
+            self.socket_server.sendto(json.dumps(data).encode(self.CHARSET), self.server)
 
         self.__main_thread__.join()
 
