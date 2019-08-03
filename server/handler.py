@@ -48,6 +48,7 @@ class Handler:
         }
 
     def invalid_data(self, data):
+        data = validate_value(data)
         return {
             "status": "error",
             "fatal": True,
