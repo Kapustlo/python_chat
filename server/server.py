@@ -50,9 +50,7 @@ class Server:
         username = parsed_data["username"]
 
         for client in self.clients:
-            client_username = self.clients[client].get_username()
-
-            if client_username == username:
+            if self.clients[client].get_username() == username:
                 return self.__handler__.username_not_unique(username)
 
         self.__add_user(address, username)
