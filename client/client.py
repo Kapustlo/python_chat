@@ -22,7 +22,7 @@ class Client:
     def _get_response_text(self, data):
         status = data["status"]
         if status == "error":
-            return "[error: {}] => {} \n".format(data["text"], data["value"])
+            return "[Server]: {} \n".format(data["text"])
 
         else:
             username = data["from"]
