@@ -107,13 +107,15 @@ class Server:
         elif type == "leave":
             self.__remove_user(address)
 
-            print("{} left | total users: {}".format(username, len(self.clients.keys())))
+            text = "{} left | total users: {}".format(username, len(self.clients.keys()))
+
+            logger.log(text, "connections", address)
 
             return {
                 "status": "info",
                 "from": username,
                 "address": address,
-                "text": "[Server]: {} left".format(username)
+                "text": "[Server]: " + text
             }
 
         elif type == "join":
