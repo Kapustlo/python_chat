@@ -1,80 +1,107 @@
-import socket, threading, json, time
+import socket
+import threading
+import time
+import json
 
-def get_response_text(data):
-    status = data["status"]
-    if status == "error":
-        return "[error: {}] => {} \n".format(data["text"], data["value"])
+class Client:
+    def __init__(self, address, server, config):
+        self.address = address
+        self.server = server
 
-    elif status == "success":
-        username = data["from"]
-        text = data["text"]
+        self.config = config
 
-        return "[{}]: {}".format(username, text)
+        self.shutdown = True
+        self.joined = False
+        self.connected = False
+        self.failed = False
 
-    return data["text"]
+        self.timeout = 5
 
-def parse_response_data(data):
-    return json.loads(data.decode("utf-8"))
+    def _get_response_text(self, data):
+        status = data["status"]
+        if status == "error":
+            return "[error: {}] => {} \n".format(data["text"], data["value"])
 
-def reciever(sock):
-    while not shutdown:
-        try:
-            while True:
-                data, address = sock.recvfrom(config["buf_size"])
-                print(get_response_text(parse_response_data(data)))
-        except:
-            pass
-
-def get_config(path="config.json"):
-    with open(path, "r") as file:
-        return json.loads(file.read())
-
-config = get_config()
-
-server = (config["server"]["host"], config["server"]["port"])
-
-if __name__ == "__main__":
-    socket_server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    socket_server.bind((config["host"], config["port"]))
-    socket_server.setblocking(0)
-
-    shutdown = False
-    joined = False
-
-    username = input("Enter your username: ")
-
-    thread = threading.Thread(target=reciever, args=(socket_server,))
-    thread.start()
-
-    while not shutdown:
-        if not joined:
-            data = {
-                "type": "join",
-                "username": username,
-                "from": username,
-                "address": config["host"]
-            }
-            joined = True
         else:
-            try:
-                message = input("[{}]: ".format(username))
+            username = data["from"]
+            text = data["text"]
+
+            return "[{}]: {}".format(username, text)
+
+        return data["text"]
+
+    def _parse_response_data(self, data):
+        return json.loads(data.decode("utf-8"))
+
+    def reciever(self, sock):
+        print("Trying to connect to the server...")
+        while not self.shutdown:
+            while True:
+                if time.time() - self.start_time >= 5 and not self.connected:
+                    print("Failed to connect to the server, press 'Enter'")
+                    self.stop()
+                    self.failed = True
+                    break
+                try:
+                    data, address = sock.recvfrom(self.config["buf_size"])
+                    if not self.connected:
+                        self.connected = True
+                        print("Success")
+                    print(self._get_response_text(self._parse_response_data(data)))
+                except Exception as e:
+                    break
+
+    def stop(self):
+        self.shutdown = True
+        self.joined = False
+
+    def run(self):
+        self.username = input("Enter your nickname: ")
+
+        self.start_time = time.time()
+
+        print("Opening a socket...")
+        self.socket_server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.socket_server.bind(self.address)
+        self.socket_server.setblocking(0)
+
+        self.__main_thread__ = threading.Thread(target=self.reciever, args=(self.socket_server,))
+        self.__main_thread__.start()
+
+        self.shutdown = False
+
+        while not self.shutdown:
+            if not self.joined:
                 data = {
-                    "type": "message",
-                    "text": message,
-                    "from": username,
-                    "address": config["host"]
+                    "type": "join",
+                    "username": self.username,
+                    "from": self.username,
+                    "address": self.address[0]
                 }
-            except KeyboardInterrupt:
-                data = {
-                    "type": "leave",
-                    "from": username,
-                    "address": config["host"]
-                }
+                self.joined = True
+            else:
+                try:
+                    message = input()
+                    data = {
+                        "type": "message",
+                        "text": message,
+                        "from": self.username,
+                        "address": self.address[0]
+                    }
+                except KeyboardInterrupt:
+                    data = {
+                        "type": "leave",
+                        "from": self.username,
+                        "address": self.address[0]
+                    }
 
-                shutdown = True
+                    self.stop()
 
-        socket_server.sendto(json.dumps(data).encode("utf-8"), server)
 
-    thread.join()
+            self.socket_server.sendto(json.dumps(data).encode("utf-8"), self.server)
 
-    socket_server.close()
+        self.__main_thread__.join()
+
+        self.connected = False
+
+        self.socket_server.close()
