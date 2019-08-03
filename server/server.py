@@ -76,6 +76,9 @@ class Server:
 
             message = "{}: {}".format(username, text)
 
+            if not client.send_message(message):
+                return self.__handler__.too_many_requests()
+
             print(message)
 
             logger.log(message, "messages", address)
@@ -124,7 +127,10 @@ class Server:
         self.stop = False
 
         while not self.stop:
-            data, address = self.server_socket.recvfrom(self.BUF_SIZE)
+            try:
+                data, address = self.server_socket.recvfrom(self.BUF_SIZE)
+            except:
+                continue
 
             try:
                 parsed_data = self._parse_response_data(data)
@@ -153,6 +159,8 @@ class Server:
                 return True
 
     def start(self):
+        print("Starting server {}:{}".format(self.address[0], self.address[1]))
+        
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.server_socket.bind(self.address)
 

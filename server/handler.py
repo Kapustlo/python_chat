@@ -55,3 +55,11 @@ class Handler:
             "text": "Invalid data received",
             "value": ""
         }
+
+    def too_many_requests(self):
+        return {
+            "status": "error",
+            "fatal": False,
+            "text": "Too many requests, wait before sending another message",
+            "value": ""
+        }
