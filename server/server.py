@@ -28,18 +28,8 @@ class Server:
 
         self.__handler__ = handler.Handler(self.CHARSET)
 
-    def parse_response_data(self, data):
+    def _parse_response_data(self, data):
         return json.loads(data.decode(self.CHARSET))
-
-    def stop_server(self):
-        self.stop = True
-        self.server_socket.close()
-        self.__main_thread__.join()
-
-    def is_user_online(self, address):
-        for client_address in self.clients:
-            if client_address[0] == address[0]:
-                return True
 
     def __add_user(self, address, username):
         self.clients[address] = client.Client(address, username)
@@ -147,7 +137,7 @@ class Server:
             data, address = self.server_socket.recvfrom(self.BUF_SIZE)
 
             try:
-                parsed_data = self.parse_response_data(data)
+                parsed_data = self._parse_response_data(data)
                 response = self.__proceed_message(parsed_data, address) if self.is_user_online(address) else self.__login_user(parsed_data, address)
             except Exception as e:
                 print(e)
@@ -161,6 +151,16 @@ class Server:
                 self.server_socket.sendto(response, address)
             else:
                 threading.Thread(target=self.__send_public_message, args=(response, address, status), daemon=True).start()
+
+    def stop_server(self):
+        self.stop = True
+        self.server_socket.close()
+        self.__main_thread__.join()
+
+    def is_user_online(self, address):
+        for client_address in self.clients:
+            if client_address[0] == address[0]:
+                return True
 
     def start(self):
         self.__main_thread__ = threading.Thread(target = self.__run, daemon=True)
