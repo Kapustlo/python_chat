@@ -13,10 +13,6 @@ class Server:
         self.address = address
         self.stop = True
 
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.server_socket.bind(address)
-
-        self.client_increment = 0
         self.clients = {}
 
         self.__main_thread__ = None
@@ -157,5 +153,8 @@ class Server:
                 return True
 
     def start(self):
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.server_socket.bind(self.address)
+
         self.__main_thread__ = threading.Thread(target = self.__run, daemon=True)
         self.__main_thread__.start()
