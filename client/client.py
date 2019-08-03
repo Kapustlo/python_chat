@@ -30,17 +30,15 @@ class Client:
 
             return "[{}]: {}".format(username, text)
 
-        return data["text"]
-
     def _parse_response_data(self, data):
         return json.loads(data.decode(self.CHARSET))
 
-    def reciever(self, sock):
+    def __reciever(self, sock):
         print("Trying to connect to the server...")
         while not self.shutdown:
             while True:
                 if time.time() - self.start_time >= 5 and not self.connected:
-                    print("Failed to connect to the server, press 'Enter'")
+                    print("Failed to connect to the server, press 'Enter' to continue")
                     self.stop()
                     self.failed = True
                     break
@@ -69,7 +67,7 @@ class Client:
             socket_address = self.socket_server.getsockname()
             print("Opened socket on {}:{}".format(socket_address[0], socket_address[1]))
 
-            self.__main_thread__ = threading.Thread(target=self.reciever, args=(self.socket_server,))
+            self.__main_thread__ = threading.Thread(target=self.__reciever, args=(self.socket_server,))
             self.__main_thread__.start()
 
             self.shutdown = False
