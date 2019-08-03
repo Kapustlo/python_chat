@@ -39,7 +39,7 @@ class Handler:
         }
 
     def msg_length_ecc(self, length=""):
-        length = validate_value(length)
+        length = self.validate_value(length)
         return {
             "status": "error",
             "fatal": False,
@@ -48,7 +48,7 @@ class Handler:
         }
 
     def invalid_data(self, data):
-        data = validate_value(data)
+        data = self.validate_value(data)
         return {
             "status": "error",
             "fatal": True,
