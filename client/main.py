@@ -7,7 +7,7 @@ def get_config(path="config.json"):
 
 config = get_config()
 
-address = ("localhost", 0)
+address = (config["host"], config["port"])
 server = (config["server"]["host"], config["server"]["port"])
 
 def main():
