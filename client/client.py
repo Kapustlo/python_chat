@@ -15,7 +15,7 @@ class Client:
         self.connected = False
         self.failed = False
 
-        self.CHARSET = config.get("charset") if config.get("charset") or "utf-8"
+        self.CHARSET = config.get("charset") if config.get("charset") else "utf-8"
 
         self.timeout = 5
 
