@@ -2,9 +2,11 @@ import socket
 import threading
 import json
 import datetime
+import os
 
 import client
 import handler
+import logger
 
 class Server:
     def __init__(self, address, config):
@@ -65,15 +67,15 @@ class Server:
 
         self.__add_user(address, username)
 
-        print(self.clients)
+        text = "{} joined | users online: {}".format(username, len(self.clients.keys()))
 
-        print("{} logged in | total users: {}".format(username, len(self.clients.keys())))
+        logger.log(text, "connections", address)
 
         return {
             "status": "info",
             "address": self.address[0],
             "from": "Server",
-            "text": "{} joined".format(username)
+            "text": text
         }
 
     def __proceed_message(self, parsed_data, address):
@@ -88,13 +90,18 @@ class Server:
                 return self.__handler__.msg_length_ecc(self.MAX_MESSAGE_LENGTH)
 
             time_now = str(datetime.datetime.now()).split(".")[0]
-            print("[{}] {}: {}".format(time_now, username, text))
+
+            message = "{}: {}".format(username, text)
+
+            print(message)
+
+            logger.log(message, "messages", address)
 
             return {
                 "status": "success",
                 "from": username,
                 "address": address,
-                "text": text
+                "text": "[{}] ".format(time_now) + text
             }
 
         elif type == "leave":
@@ -114,12 +121,16 @@ class Server:
             old_username = user.get_username()
             user.set_username(username)
             self.clients[address] = user
-            print(self.clients[address].get_username())
+
+            text = "[Server]: {} reconnected as {}".format(old_username, username)
+
+            logger.log(text, "connections", address)
+
             return {
                 "status": "info",
                 "address": self.address[0],
                 "from": "Server",
-                "text": "[Server]: {} reconnected as {}".format(old_username, username)
+                "text": text
             }
 
     def __send_public_message(self, response, address, status):
@@ -145,7 +156,7 @@ class Server:
             response = json.dumps(response).encode(self.CHARSET)
 
             if status == "error":
-                server_socket.sendto(response, address)
+                self.server_socket.sendto(response, address)
             else:
                 threading.Thread(target=self.__send_public_message, args=(response, address, status), daemon=True).start()
 
