@@ -79,8 +79,7 @@ class Client:
                 data = {
                     "type": "join",
                     "username": self.username,
-                    "from": self.username,
-                    "address": self.address[0]
+                    "from": self.username
                 }
                 self.joined = True
             else:
@@ -89,14 +88,12 @@ class Client:
                     data = {
                         "type": "message",
                         "text": message,
-                        "from": self.username,
-                        "address": self.address[0]
+                        "from": self.username
                     }
                 except KeyboardInterrupt:
                     data = {
                         "type": "leave",
-                        "from": self.username,
-                        "address": self.address[0]
+                        "from": self.username
                     }
 
                     self.stop()

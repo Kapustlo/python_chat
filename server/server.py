@@ -61,7 +61,6 @@ class Server:
 
         return {
             "status": "info",
-            "address": self.address[0],
             "from": "Server",
             "text": text
         }
@@ -88,7 +87,6 @@ class Server:
             return {
                 "status": "success",
                 "from": username,
-                "address": address,
                 "text": "[{}] ".format(time_now) + text
             }
 
@@ -102,7 +100,6 @@ class Server:
             return {
                 "status": "info",
                 "from": username,
-                "address": address,
                 "text": "[Server]: " + text
             }
 
@@ -118,7 +115,6 @@ class Server:
 
             return {
                 "status": "info",
-                "address": self.address[0],
                 "from": "Server",
                 "text": text
             }
