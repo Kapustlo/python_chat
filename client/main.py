@@ -24,9 +24,9 @@ def main():
 
     print("Disconnected")
 
-    to_be_continued = input("Do you wish to try again? (y/n) ").strip()
+    to_be_continued = input("Do you wish to try again? (yes/no) ").strip()
 
-    if to_be_continued == "y" or to_be_continued == "Y":
+    if to_be_continued == "yes" or to_be_continued == "Yes" or to_be_continued == "YES":
         main()
 
 if __name__ == "__main__":

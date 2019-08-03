@@ -58,51 +58,53 @@ class Client:
         self.joined = False
 
     def run(self):
-        self.username = input("Enter your nickname: ")
+        try:
+            self.username = input("Enter your nickname: ")
+            self.start_time = time.time()
 
-        self.start_time = time.time()
+            print("Opening a socket...")
+            self.socket_server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.socket_server.bind(self.address)
+            self.socket_server.setblocking(0)
+            socket_address = self.socket_server.getsockname()
+            print("Opened socket on {}:{}".format(socket_address[0], socket_address[1]))
 
-        print("Opening a socket...")
-        self.socket_server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.socket_server.bind(self.address)
-        self.socket_server.setblocking(0)
-        socket_address = self.socket_server.getsockname()
-        print("Opened socket on {}:{}".format(socket_address[0], socket_address[1]))
+            self.__main_thread__ = threading.Thread(target=self.reciever, args=(self.socket_server,))
+            self.__main_thread__.start()
 
-        self.__main_thread__ = threading.Thread(target=self.reciever, args=(self.socket_server,))
-        self.__main_thread__.start()
+            self.shutdown = False
 
-        self.shutdown = False
-
-        while not self.shutdown:
-            if not self.joined:
-                data = {
-                    "type": "join",
-                    "username": self.username,
-                    "from": self.username
-                }
-                self.joined = True
-            else:
-                try:
-                    message = input()
+            while not self.shutdown:
+                if not self.joined:
                     data = {
-                        "type": "message",
-                        "text": message,
+                        "type": "join",
+                        "username": self.username,
                         "from": self.username
                     }
-                except KeyboardInterrupt:
-                    data = {
-                        "type": "leave",
-                        "from": self.username
-                    }
+                    self.joined = True
+                else:
+                    try:
+                        message = input()
+                        data = {
+                            "type": "message",
+                            "text": message,
+                            "from": self.username
+                        }
+                    except KeyboardInterrupt:
+                        data = {
+                            "type": "leave",
+                            "from": self.username
+                        }
 
-                    self.stop()
+                        self.stop()
 
 
-            self.socket_server.sendto(json.dumps(data).encode(self.CHARSET), self.server)
+                self.socket_server.sendto(json.dumps(data).encode(self.CHARSET), self.server)
 
-        self.__main_thread__.join()
+            self.__main_thread__.join()
 
-        self.connected = False
+            self.connected = False
 
-        self.socket_server.close()
+            self.socket_server.close()
+        except KeyboardInterrupt:
+            self.stop()
