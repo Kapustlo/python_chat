@@ -16,7 +16,7 @@ def failed_credentials(value=""):
         "value": value
     }
 
-def max_conns_ecc(self):
+def max_conns_ecc():
     return {
         "status": "error",
         "fatal": True,
@@ -40,7 +40,7 @@ def invalid_data(data):
         "value": ""
     }
 
-def too_many_requests(self):
+def too_many_requests():
     return {
         "status": "error",
         "fatal": False,
