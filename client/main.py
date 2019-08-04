@@ -1,6 +1,6 @@
 import json
 import client
-import socket
+
 def get_config(path="config.json"):
     with open(path, "r") as file:
         return json.loads(file.read())
@@ -11,7 +11,9 @@ address = (config["host"], config["port"])
 server = (config["server"]["host"], config["server"]["port"])
 
 def main():
-    socket = client.Client(address, server, config)
+    username = input("Enter your nickname: ")
+
+    socket = client.Client(username, address, server, config)
 
     socket.run()
 

@@ -4,7 +4,9 @@ import time
 import json
 
 class Client:
-    def __init__(self, address, server, config):
+    def __init__(self, username, address, server, config):
+        self.username = username
+        
         self.address = address
         self.server = server
 
@@ -63,7 +65,6 @@ class Client:
 
     def run(self):
         try:
-            self.username = input("Enter your nickname: ")
             self.start_time = time.time()
 
             print("Opening a socket...")
