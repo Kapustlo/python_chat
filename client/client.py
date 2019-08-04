@@ -35,12 +35,12 @@ class Client:
     def _parse_response_data(self, data):
         return json.loads(data.decode(self.CHARSET))
 
-    def __reciever(self, sock):
+    def __receiver(self, sock):
         print("Trying to connect to the server...")
         while not self.shutdown:
             while True:
                 last_sent = self.last_sent if self.last_sent else time.time()
-                if (time.time() - self.start_time >= self.timeout and not self.connected) or time.time() - last_sent >= self.timeout:
+                if time.time() - self.start_time >= self.timeout and not self.connected:
                     print("Failed to connect to the server, press 'Enter' to continue")
                     self.stop()
                     self.failed = True
@@ -75,7 +75,7 @@ class Client:
 
             self.shutdown = False
 
-            self.__main_thread__ = threading.Thread(target=self.__reciever, args=(self.socket_server,))
+            self.__main_thread__ = threading.Thread(target=self.__receiver, args=(self.socket_server,))
             self.__main_thread__.start()
 
             while not self.shutdown:
