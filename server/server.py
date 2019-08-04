@@ -140,7 +140,7 @@ class Server:
                 parsed_data = self._parse_response_data(data)
                 response = self.__proceed_message(parsed_data, address) if self.is_user_online(address) else self.__login_user(parsed_data, address)
             except Exception as e:
-                raise e
+                print(e)
                 response = handler.generate_error_message(True, "Invalid data received")
 
             status = response["status"]
