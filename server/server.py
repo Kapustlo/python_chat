@@ -22,8 +22,6 @@ class Server:
         self.MAX_MESSAGE_LENGTH = config.get("max_length") if config.get("max_length") else 32
         self.MAX_CONNS = config.get("max_conns") if config.get("max_conns") else 10
 
-        self.__handler__ = handler.Handler(self.CHARSET)
-
     def _parse_response_data(self, data):
         return json.loads(data.decode(self.CHARSET))
 
@@ -41,13 +39,13 @@ class Server:
         total_clients = len(self.clients.keys())
 
         if total_clients > self.MAX_CONNS:
-            return self.__handler__.max_conns_ecc()
+            return handler.max_conns_ecc()
 
         username = parsed_data["username"]
 
         for client in self.clients:
             if self.clients[client].get_username() == username:
-                return self.__handler__.username_not_unique(username)
+                return handler.username_not_unique(username)
 
         self.__add_user(address, username)
 
@@ -70,14 +68,14 @@ class Server:
         if type == "message":
             text = parsed_data["text"]
             if len(text) > self.MAX_MESSAGE_LENGTH:
-                return self.__handler__.msg_length_ecc(self.MAX_MESSAGE_LENGTH)
+                return handler.msg_length_ecc(self.MAX_MESSAGE_LENGTH)
 
             time_now = str(datetime.datetime.now()).split(".")[0]
 
             message = "{}: {}".format(username, text)
 
             if not client.send_message(message):
-                return self.__handler__.too_many_requests()
+                return handler.too_many_requests()
 
             print(message)
 
@@ -137,7 +135,7 @@ class Server:
                 response = self.__proceed_message(parsed_data, address) if self.is_user_online(address) else self.__login_user(parsed_data, address)
             except Exception as e:
                 print(e)
-                response = self.__handler__.invalid_data(data)
+                response = handler.invalid_data(data.decode(self.CHARSET))
 
             status = response["status"]
 
@@ -160,7 +158,7 @@ class Server:
 
     def start(self):
         print("Starting server {}:{}".format(self.address[0], self.address[1]))
-        
+
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.server_socket.bind(self.address)
 

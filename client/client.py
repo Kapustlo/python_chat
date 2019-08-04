@@ -19,6 +19,8 @@ class Client:
 
         self.timeout = 5
 
+        self.last_sent = None
+
     def _get_response_text(self, data):
         status = data["status"]
         if status == "error":
@@ -37,7 +39,8 @@ class Client:
         print("Trying to connect to the server...")
         while not self.shutdown:
             while True:
-                if time.time() - self.start_time >= 5 and not self.connected:
+                last_sent = self.last_sent if self.last_sent else time.time()
+                if (time.time() - self.start_time >= self.timeout and not self.connected) or time.time() - last_sent >= self.timeout:
                     print("Failed to connect to the server, press 'Enter' to continue")
                     self.stop()
                     self.failed = True
@@ -47,6 +50,9 @@ class Client:
                     if not self.connected:
                         self.connected = True
                         print("Success")
+
+                    self.last_sent = None
+
                     print(self._get_response_text(self._parse_response_data(data)))
                 except Exception as e:
                     break
@@ -67,10 +73,10 @@ class Client:
             socket_address = self.socket_server.getsockname()
             print("Opened socket on {}:{}".format(socket_address[0], socket_address[1]))
 
+            self.shutdown = False
+
             self.__main_thread__ = threading.Thread(target=self.__reciever, args=(self.socket_server,))
             self.__main_thread__.start()
-
-            self.shutdown = False
 
             while not self.shutdown:
                 if not self.joined:
@@ -96,13 +102,15 @@ class Client:
 
                         self.stop()
 
-
                 self.socket_server.sendto(json.dumps(data).encode(self.CHARSET), self.server)
+
+                self.last_sent = time.time()
 
             self.__main_thread__.join()
 
             self.connected = False
 
             self.socket_server.close()
+
         except KeyboardInterrupt:
             self.stop()
