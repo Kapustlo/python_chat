@@ -103,7 +103,7 @@ class Server:
             return {
                 "status": "info",
                 "from": username,
-                "text": "[Server]: " + text
+                "text": text
             }
 
         elif type == "join":

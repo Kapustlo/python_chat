@@ -5,5 +5,6 @@ def generate_error_message(fatal, text = "", value = ""):
         "status": "error",
         "fatal": fatal,
         "text": text,
-        "value": value
+        "value": value,
+        "from": "Server"
     }

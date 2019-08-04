@@ -25,15 +25,10 @@ class Client:
         self.last_received = time.time()
 
     def _get_response_text(self, data):
-        status = data["status"]
-        if status == "error":
-            return "[Server]: {} \n".format(data["text"])
+        username = data["from"]
+        text = data["text"]
 
-        else:
-            username = data["from"]
-            text = data["text"]
-
-            return "[{}]: {}".format(username, text)
+        return "[{}]: {}".format(username, text)
 
     def _parse_response_data(self, data):
         return json.loads(data.decode(self.CHARSET))
