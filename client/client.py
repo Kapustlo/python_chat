@@ -44,9 +44,9 @@ class Client:
             while True:
                 last_sent = self.last_sent if self.last_sent else time.time()
                 if (time.time() - self.start_time >= self.timeout and not self.connected) or time.time() - self.last_received >= self.timeout:
-                    print("Failed to connect to the server, press 'Enter' to continue")
                     self.stop()
                     self.failed = True
+                    print("Failed to connect to the server, press 'Enter' to continue")
                     break
                 try:
                     data, address = sock.recvfrom(self.config["buf_size"])
@@ -58,7 +58,6 @@ class Client:
                     if data != b'1':
                         print(self._get_response_text(self._parse_response_data(data)))
                     else:
-                        print(data)
                         self.last_received = time.time()
                 except Exception as e:
                     break
