@@ -39,13 +39,13 @@ class Server:
         total_clients = len(self.clients.keys())
 
         if total_clients > self.MAX_CONNS:
-            return handler.max_conns_ecc()
+            return handler.generate_error_message(True, "No room for you, too many users, sorry :(", self.MAX_CONNS)
 
         username = parsed_data["username"]
 
         for client in self.clients:
             if self.clients[client].get_username() == username:
-                return handler.username_not_unique(username)
+                return handler.generate_error_message(True, username + " is not a unique username")
 
         self.__add_user(address, username)
 
@@ -67,15 +67,20 @@ class Server:
 
         if type == "message":
             text = parsed_data["text"]
+
+            if not len(text):
+                return handler.generate_error_message(False, "Empty messages have no meaning, you message was not sent :)")
+
             if len(text) > self.MAX_MESSAGE_LENGTH:
-                return handler.msg_length_ecc(self.MAX_MESSAGE_LENGTH)
+                return handler.generate_error_message(False, "Your message is too long, maximums length is " + str(self.MAX_MESSAGE_LENGTH))
 
             time_now = str(datetime.datetime.now()).split(".")[0]
 
             message = "{}: {}".format(username, text)
 
             if not client.send_message(message):
-                return handler.too_many_requests()
+                return handler.generate_error_message(False, "Too many requests, wait before sending another one")
+
 
             print(message)
 
@@ -134,8 +139,8 @@ class Server:
                 parsed_data = self._parse_response_data(data)
                 response = self.__proceed_message(parsed_data, address) if self.is_user_online(address) else self.__login_user(parsed_data, address)
             except Exception as e:
-                print(e)
-                response = handler.invalid_data(data.decode(self.CHARSET))
+                raise e
+                response = handler.generate_error_message(True, "Invalid data received")
 
             status = response["status"]
 
