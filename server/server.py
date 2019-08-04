@@ -3,6 +3,7 @@ import threading
 import json
 import datetime
 import os
+import time
 
 import client
 import handler
@@ -16,6 +17,7 @@ class Server:
         self.clients = {}
 
         self.__main_thread__ = None
+        self.__sander_thread__ = None
 
         self.CHARSET = config.get("charset") if config.get("charset") else "utf-8"
         self.BUF_SIZE = config.get("buf_size") if config.get("buf_size") else 1024
@@ -80,7 +82,6 @@ class Server:
 
             if not client.send_message(message):
                 return handler.generate_error_message(False, "Too many requests, wait before sending another one")
-
 
             print(message)
 
@@ -161,6 +162,11 @@ class Server:
             if client_address[0] == address[0]:
                 return True
 
+    def __send_checked(self):
+        while not self.stop:
+            for address in self.clients:
+                self.server_socket.sendto(b'1', address)
+            time.sleep(1)
     def start(self):
         print("Starting server {}:{}".format(self.address[0], self.address[1]))
 
@@ -169,3 +175,6 @@ class Server:
 
         self.__main_thread__ = threading.Thread(target = self.__run, daemon=True)
         self.__main_thread__.start()
+
+        self.__sander_thread__ = threading.Thread(target = self.__send_checked, daemon = True)
+        self.__sander_thread__.start()

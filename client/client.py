@@ -6,7 +6,7 @@ import json
 class Client:
     def __init__(self, username, address, server, config):
         self.username = username
-        
+
         self.address = address
         self.server = server
 
@@ -22,6 +22,7 @@ class Client:
         self.timeout = 5
 
         self.last_sent = None
+        self.last_received = time.time()
 
     def _get_response_text(self, data):
         status = data["status"]
@@ -42,7 +43,7 @@ class Client:
         while not self.shutdown:
             while True:
                 last_sent = self.last_sent if self.last_sent else time.time()
-                if time.time() - self.start_time >= self.timeout and not self.connected:
+                if (time.time() - self.start_time >= self.timeout and not self.connected) or time.time() - self.last_received >= self.timeout:
                     print("Failed to connect to the server, press 'Enter' to continue")
                     self.stop()
                     self.failed = True
@@ -54,14 +55,19 @@ class Client:
                         print("Success")
 
                     self.last_sent = None
-
-                    print(self._get_response_text(self._parse_response_data(data)))
+                    if data != b'1':
+                        print(self._get_response_text(self._parse_response_data(data)))
+                    else:
+                        print(data)
+                        self.last_received = time.time()
                 except Exception as e:
                     break
 
     def stop(self):
         self.shutdown = True
         self.joined = False
+
+        print("Disconnected")
 
     def run(self):
         try:

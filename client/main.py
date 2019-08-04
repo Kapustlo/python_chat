@@ -28,8 +28,6 @@ def main():
             socket.stop()
             break
 
-    print("Disconnected")
-
     to_be_continued = input("Do you wish to try again? (yes/no) ").strip()
 
     if to_be_continued == "yes" or to_be_continued == "Yes" or to_be_continued == "YES":
