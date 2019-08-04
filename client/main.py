@@ -12,7 +12,10 @@ address = (config["host"], config["port"])
 server = (config["server"]["host"], config["server"]["port"])
 
 def main():
-    username = input("Enter your nickname: ") if len(sys.argv) < 2 else sys.argv[1]
+    try:
+        username = input("Enter your nickname: ") if len(sys.argv) < 2 else sys.argv[1]
+    except KeyboardInterrupt:
+        exit()
 
     socket = client.Client(username, address, server, config)
 
