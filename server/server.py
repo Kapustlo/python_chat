@@ -219,7 +219,13 @@ class Server:
 
         if args_length == 1:
             if command == "help":
-                result = """list - get list of all connected users"""
+                result = """
+list - get list of all connected users
+uptime - shows server uptime
+stop/start/restart - stops/starts/restarts server
+say *message* - sends message to everyone in the chat (* is not required)
+kick *username* - kicks a user
+                """
             elif command == "list":
                 copied = self.clients.copy()
                 for index, address in enumerate(copied):
@@ -239,9 +245,10 @@ class Server:
             command = args[0]
 
             if command == "say":
-                result = ""
+                message = " ".join(args[1:])
+                result = "[{}]: {}".format(self.SERVER_NAME, message)
                 for address in self.clients.copy():
-                    self.server_socket.sendto(self.__wrap_response(self.__prepare_response("info", self.SERVER_NAME, " ".join(args[1:]))),address)
+                    self.server_socket.sendto(self.__wrap_response(self.__prepare_response("info", self.SERVER_NAME, message)),address)
 
             elif command == "kick":
                 username = args[1]
