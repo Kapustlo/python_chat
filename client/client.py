@@ -3,6 +3,8 @@ import threading
 import time
 import json
 
+DEFAULT_CHARSET = "utf-8"
+
 class Client:
     def __init__(self, username, address, server, config):
         self.username = username
@@ -17,7 +19,7 @@ class Client:
         self.connected = False
         self.failed = False
 
-        self.CHARSET = config.get("charset") if config.get("charset") else "utf-8"
+        self.CHARSET = config.get("charset") if config.get("charset") else DEFAULT_CHARSET
 
         self.timeout = 5
 

@@ -9,6 +9,12 @@ import client
 import handler
 import logger
 
+
+DEFAULT_MAX_CONNS = 10
+DEFAULT_BUF_SIZE = 1024
+DEFAULT_MESSAGE_LENGTH = 32
+DEFAULT_CHARSET = "utf-8"
+
 class Server:
     def __init__(self, address, config):
         self.address = address
@@ -19,10 +25,10 @@ class Server:
         self.__main_thread__ = None
         self.__sander_thread__ = None
 
-        self.CHARSET = config.get("charset") if config.get("charset") else "utf-8"
-        self.BUF_SIZE = config.get("buf_size") if config.get("buf_size") else 1024
-        self.MAX_MESSAGE_LENGTH = config.get("max_length") if config.get("max_length") else 32
-        self.MAX_CONNS = config.get("max_conns") if config.get("max_conns") else 10
+        self.CHARSET = config.get("charset") if config.get("charset") else DEFAULT_CHARSET
+        self.BUF_SIZE = config.get("buf_size") if config.get("buf_size") else DEFAULT_BUF_SIZE
+        self.MAX_MESSAGE_LENGTH = config.get("max_length") if config.get("max_length") else DEFAULT_MESSAGE_LENGTH
+        self.MAX_CONNS = config.get("max_conns") if config.get("max_conns") else DEFAULT_MAX_CONNS
 
     def _parse_response_data(self, data):
         return json.loads(data.decode(self.CHARSET))
@@ -64,7 +70,7 @@ class Server:
     def __proceed_message(self, parsed_data, address):
         client = self.clients[address]
         username = client.get_username()
-
+        print(parsed_data)
         type = parsed_data["type"]
 
         if type == "message":
