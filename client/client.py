@@ -50,10 +50,12 @@ class Client:
                         print("Success")
 
                     self.last_sent = None
+
                     if data != b'1':
                         print(self._get_response_text(self._parse_response_data(data)))
                     else:
                         self.last_received = time.time()
+
                 except Exception as e:
                     break
 
@@ -62,6 +64,18 @@ class Client:
         self.joined = False
 
         print("Disconnected")
+
+    def __login(self, username):
+        self.joined = True
+
+        self.socket_server.sendto(
+            json.dumps({
+                "type": "join",
+                "username": self.username,
+                "from": self.username
+            }).encode(self.CHARSET),
+            self.server
+        )
 
     def run(self):
         try:
@@ -79,15 +93,10 @@ class Client:
             self.__main_thread__ = threading.Thread(target=self.__receiver, args=(self.socket_server,))
             self.__main_thread__.start()
 
+            self.__login(self.username)
+
             while not self.shutdown:
-                if not self.joined:
-                    data = {
-                        "type": "join",
-                        "username": self.username,
-                        "from": self.username
-                    }
-                    self.joined = True
-                else:
+                if self.connected:
                     try:
                         message = input()
                         data = {
@@ -103,9 +112,9 @@ class Client:
 
                         self.stop()
 
-                self.socket_server.sendto(json.dumps(data).encode(self.CHARSET), self.server)
+                    self.socket_server.sendto(json.dumps(data).encode(self.CHARSET), self.server)
 
-                self.last_sent = time.time()
+                    self.last_sent = time.time()
 
             self.__main_thread__.join()
 
