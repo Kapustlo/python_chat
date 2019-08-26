@@ -121,7 +121,7 @@ class Server:
             user.set_username(username)
             self.clients[address] = user
 
-            text = "[Server]: {} reconnected as {}".format(old_username, username)
+            text = "{} reconnected as {}".format(old_username, username)
 
             logger.log(text, "connections", address)
 
