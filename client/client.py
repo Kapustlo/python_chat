@@ -54,7 +54,13 @@ class Client:
                     self.last_sent = None
 
                     if data != b'1':
-                        print(self._get_response_text(self._parse_response_data(data)))
+                        parsed_data = self._parse_response_data(data)
+
+                        print(self._get_response_text(parsed_data))
+
+                        if parsed_data["status"] == "error":
+                            self.stop()
+                            break
                     else:
                         self.last_received = time.time()
 
