@@ -82,7 +82,7 @@ class Server:
                 return handler.generate_error_message(False, "Empty messages have no meaning, your message was not sent :)")
 
             if len(text) > self.MAX_MESSAGE_LENGTH:
-                return handler.generate_error_message(False, "Your message is too long, maximums length is " + str(self.MAX_MESSAGE_LENGTH))
+                return handler.generate_error_message(False, "Your message is too long, maximum length is {}".format(self.MAX_MESSAGE_LENGTH))
 
             time_now = str(datetime.datetime.now()).split(".")[0]
 
