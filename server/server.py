@@ -14,6 +14,7 @@ DEFAULT_MAX_CONNS = 10
 DEFAULT_BUF_SIZE = 1024
 DEFAULT_MESSAGE_LENGTH = 32
 DEFAULT_CHARSET = "utf-8"
+DEFAULT_IDLE_ITEM = 5
 
 class Server:
     def __init__(self, address, config):
@@ -23,12 +24,13 @@ class Server:
         self.clients = {}
 
         self.__main_thread__ = None
-        self.__sander_thread__ = None
+        self.__secondary_thread__ = None
 
         self.CHARSET = config.get("charset") if config.get("charset") else DEFAULT_CHARSET
         self.BUF_SIZE = config.get("buf_size") if config.get("buf_size") else DEFAULT_BUF_SIZE
         self.MAX_MESSAGE_LENGTH = config.get("max_length") if config.get("max_length") else DEFAULT_MESSAGE_LENGTH
         self.MAX_CONNS = config.get("max_conns") if config.get("max_conns") else DEFAULT_MAX_CONNS
+        self.IDLE_TIME = config.get("idle_time") if config.get("idle_time") else DEFAULT_IDLE_ITEM
 
     def _parse_response_data(self, data):
         return json.loads(data.decode(self.CHARSET))
@@ -171,8 +173,17 @@ class Server:
     def __send_checked(self):
         while not self.stop:
             for address in self.clients:
-                self.server_socket.sendto(b'1', address)
+                client = self.clients[address]
+                if time.time() - client.last_sent >= self.IDLE_TIME:
+                    message = generate_error_message(True, "")
+                    self.__remove_user(address)
+                else:
+                    message = b'1'
+                    
+                self.server_socket.sendto(message, address)
+
             time.sleep(1)
+
     def start(self):
         print("Starting server {}:{}".format(self.address[0], self.address[1]))
 
@@ -182,5 +193,5 @@ class Server:
         self.__main_thread__ = threading.Thread(target = self.__run, daemon=True)
         self.__main_thread__.start()
 
-        self.__sander_thread__ = threading.Thread(target = self.__send_checked, daemon = True)
-        self.__sander_thread__.start()
+        self.__secondary_thread__ = threading.Thread(target = self.__send_checked, daemon = True)
+        self.__secondary_thread__.start()

@@ -1,8 +1,9 @@
 {
-  "host": "25.56.42.255",
-  "port": 80,
+  "host": "localhost",
+  "port": 18,
   "buf_size": 1024,
   "max_conns": 10,
   "max_length": 32,
-  "charset": "utf-8"
+  "charset": "utf-8",
+  "idle_time": 10
 }
