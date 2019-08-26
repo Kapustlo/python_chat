@@ -55,7 +55,7 @@ class Server:
 
         for client in self.clients.copy():
             if self.clients[client].get_username() == username:
-                return handler.generate_error_message(True, username + " is not a unique username")
+                return handler.generate_error_message(True, "{} is not a unique username".format(username))
 
         self.__add_user(address, username)
 
