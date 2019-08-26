@@ -79,7 +79,7 @@ class Server:
             text = parsed_data["text"]
 
             if not len(text):
-                return handler.generate_error_message(False, "Empty messages have no meaning, you message was not sent :)")
+                return handler.generate_error_message(False, "Empty messages have no meaning, your message was not sent :)")
 
             if len(text) > self.MAX_MESSAGE_LENGTH:
                 return handler.generate_error_message(False, "Your message is too long, maximums length is " + str(self.MAX_MESSAGE_LENGTH))
