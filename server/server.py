@@ -31,6 +31,7 @@ class Server:
         self.MAX_MESSAGE_LENGTH = config.get("max_length") if config.get("max_length") else DEFAULT_MESSAGE_LENGTH
         self.MAX_CONNS = config.get("max_conns") if config.get("max_conns") else DEFAULT_MAX_CONNS
         self.IDLE_TIME = config.get("idle_time") if config.get("idle_time") else DEFAULT_IDLE_ITEM
+        self.SERVER_NAME = config.get("server_name") if config.get("server_name") else ""
 
     def _parse_response_data(self, data):
         return json.loads(data.decode(self.CHARSET))
@@ -65,7 +66,7 @@ class Server:
 
         return {
             "status": "info",
-            "from": "Server",
+            "from": self.SERVER_NAME,
             "text": text
         }
 
@@ -126,7 +127,7 @@ class Server:
 
             return {
                 "status": "info",
-                "from": "Server",
+                "from": self.SERVER_NAME,
                 "text": text
             }
 
