@@ -58,7 +58,7 @@ class Client:
 
                         print(self._get_response_text(parsed_data))
 
-                        if parsed_data["status"] == "error":
+                        if parsed_data["status"] == "error" and parsed_data["fatal"]:
                             self.stop()
                             break
                     else:
