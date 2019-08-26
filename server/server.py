@@ -78,7 +78,7 @@ class Server:
         if type == "message":
             text = parsed_data["text"]
 
-            if not len(text):
+            if not len(text.strip()):
                 return handler.generate_error_message(False, "Empty messages have no meaning, your message was not sent :)")
 
             if len(text) > self.MAX_MESSAGE_LENGTH:
@@ -98,7 +98,7 @@ class Server:
             return {
                 "status": "success",
                 "from": username,
-                "text": "[{}] ".format(time_now) + text
+                "text": "[{}] {}".format(time_now, text)
             }
 
         elif type == "leave":
