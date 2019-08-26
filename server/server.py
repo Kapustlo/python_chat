@@ -4,17 +4,17 @@ import json
 import datetime
 import os
 import time
+import math
 
 import client
 import handler
 import logger
 
-
 DEFAULT_MAX_CONNS = 10
 DEFAULT_BUF_SIZE = 1024
 DEFAULT_MESSAGE_LENGTH = 32
 DEFAULT_CHARSET = "utf-8"
-DEFAULT_IDLE_ITEM = 5
+DEFAULT_IDLE_ITEM = math.inf
 
 class Server:
     def __init__(self, address, config):
