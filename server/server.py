@@ -172,15 +172,19 @@ class Server:
 
     def __send_checked(self):
         while not self.stop:
+            to_disconnect = []
             for address in self.clients:
                 client = self.clients[address]
                 if time.time() - client.last_sent >= self.IDLE_TIME:
-                    message = handler.generate_error_message(True, "")
-                    self.__remove_user(address)
+                    message = json.dumps(handler.generate_error_message(True, "You have been idle for too long", "")).encode(self.CHARSET)
+                    to_disconnect.append(address)
                 else:
                     message = b'1'
 
                 self.server_socket.sendto(message, address)
+
+            for address in to_disconnect:
+                self.__remove_user(address)
 
             time.sleep(1)
 
