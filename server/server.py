@@ -21,10 +21,10 @@ class Server:
         self.address = address
         self.stop = True
 
-        self.clients = {}
+        self.clients = {} # Keys are addresses (host:port) and values are Client objects
 
-        self.__main_thread__ = None
-        self.__secondary_thread__ = None
+        self.__main_thread__ = None # Messages
+        self.__secondary_thread__ = None # Connection checks
 
         self.CHARSET = config.get("charset") if config.get("charset") else DEFAULT_CHARSET
         self.BUF_SIZE = config.get("buf_size") if config.get("buf_size") else DEFAULT_BUF_SIZE
@@ -40,8 +40,7 @@ class Server:
         self.clients[address] = client.Client(address, username)
 
     def __remove_user(self, address):
-        if address in self.clients.copy():
-            del self.clients[address]
+        del self.clients[address]
 
     def __login_user(self, parsed_data, address):
 
