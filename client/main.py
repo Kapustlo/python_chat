@@ -8,7 +8,7 @@ def get_config(path="config.json"):
 
 config = get_config()
 
-address = (config["host"], config["port"])
+address = ("localhost", 0)
 server = (config["server"]["host"], config["server"]["port"])
 
 def main():
