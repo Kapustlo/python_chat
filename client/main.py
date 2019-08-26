@@ -28,7 +28,10 @@ def main():
             socket.stop()
             break
 
-    to_be_continued = input("Do you wish to try again? (yes/no) ").strip()
+    try:
+        to_be_continued = input("Do you wish to try again? (yes/no) ").strip()
+    except KeyboardInterrupt:
+        exit()
 
     if to_be_continued == "yes" or to_be_continued == "Yes" or to_be_continued == "YES":
         main()
