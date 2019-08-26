@@ -14,7 +14,7 @@ DEFAULT_MAX_CONNS = 10
 DEFAULT_BUF_SIZE = 1024
 DEFAULT_MESSAGE_LENGTH = 32
 DEFAULT_CHARSET = "utf-8"
-DEFAULT_IDLE_ITEM = math.inf
+DEFAILT_IDLE_TIME = math.inf
 
 class Server:
     def __init__(self, address, config):
@@ -30,7 +30,7 @@ class Server:
         self.BUF_SIZE = config.get("buf_size") if config.get("buf_size") else DEFAULT_BUF_SIZE
         self.MAX_MESSAGE_LENGTH = config.get("max_length") if config.get("max_length") else DEFAULT_MESSAGE_LENGTH
         self.MAX_CONNS = config.get("max_conns") if config.get("max_conns") else DEFAULT_MAX_CONNS
-        self.IDLE_TIME = config.get("idle_time") if config.get("idle_time") else DEFAULT_IDLE_ITEM
+        self.IDLE_TIME = config.get("idle_time") if config.get("idle_time") else DEFAILT_IDLE_TIME
         self.SERVER_NAME = config.get("server_name") if config.get("server_name") else ""
 
     def _parse_response_data(self, data):
