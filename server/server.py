@@ -169,6 +169,8 @@ class Server:
         for client_address in self.clients.copy():
             if client_address[0] == address[0]:
                 return True
+        else:
+            return False
 
     def __send_checked(self):
         while not self.stop:
