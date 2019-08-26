@@ -2,13 +2,9 @@ import socket, json, datetime
 
 import server
 
-def get_config(path="config.json"):
-    with open(path, "r") as file:
-        data = file.read()
-        return json.loads(data)
-
 if __name__ == "__main__":
-    config = get_config()
+    with open("json/config.json", "r") as file:
+        config = json.loads(file.read())
 
     HOST = config.get("host")
     PORT = config.get("port")
@@ -19,9 +15,11 @@ if __name__ == "__main__":
 
     chat_server.start()
 
-    while True:
+    while not chat_server.shutdown:
         try:
-            pass
+            command = input()
+            if len(command.strip()):
+                chat_server.command(command)
         except KeyboardInterrupt:
-            chat_server.stop_server()
+            chat_server.stop()
             break

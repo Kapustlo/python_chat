@@ -19,12 +19,14 @@ DEFAILT_IDLE_TIME = math.inf
 class Server:
     def __init__(self, address, config):
         self.address = address
-        self.stop = True
+        self.shutdown = True
 
         self.clients = {} # Keys are addresses (host:port) and values are Client objects
 
         self.__main_thread__ = None # Messages
         self.__secondary_thread__ = None # Connection checks
+
+        self.start_time = None
 
         self.CHARSET = config.get("charset") if config.get("charset") else DEFAULT_CHARSET
         self.BUF_SIZE = config.get("buf_size") if config.get("buf_size") else DEFAULT_BUF_SIZE
@@ -53,8 +55,10 @@ class Server:
 
         username = parsed_data["username"]
 
-        for client in self.clients.copy():
-            if self.clients[client].get_username() == username:
+        copied = self.clients.copy()
+
+        for client in copied:
+            if copied[client].get_username() == username:
                 return handler.generate_error_message(True, "{} is not a unique username".format(username))
 
         self.__add_user(address, username)
@@ -136,9 +140,9 @@ class Server:
                 self.server_socket.sendto(response, client)
 
     def __run(self):
-        self.stop = False
+        self.shutdown = False
 
-        while not self.stop:
+        while not self.shutdown:
             try:
                 data, address = self.server_socket.recvfrom(self.BUF_SIZE)
             except:
@@ -160,10 +164,18 @@ class Server:
             else:
                 threading.Thread(target=self.__send_public_message, args=(response, address, status), daemon=True).start()
 
-    def stop_server(self):
-        self.stop = True
+    def stop(self):
+        self.shutdown = True
         self.server_socket.close()
         self.__main_thread__.join()
+        self.__secondary_thread__.join()
+
+        self.clients = {}
+
+        self.__main_thread__ = None
+        self.__secondary_thread__ = None
+
+        self.start_time = None
 
     def is_user_online(self, address):
         for client_address in self.clients.copy():
@@ -173,7 +185,7 @@ class Server:
             return False
 
     def __send_checked(self):
-        while not self.stop:
+        while not self.shutdown:
             for address in self.clients.copy():
                 client = self.clients[address]
                 if time.time() - client.last_sent >= self.IDLE_TIME:
@@ -197,3 +209,63 @@ class Server:
 
         self.__secondary_thread__ = threading.Thread(target = self.__send_checked, daemon = True)
         self.__secondary_thread__.start()
+
+        self.start_time = time.time()
+
+    def restart(self):
+        self.stop()
+        self.start()
+
+    def command(self, command):
+        args = command.split(" ")
+        args_length = len(args)
+
+        result = "'{}' is an invalid command, use 'help' for help".format(command)
+
+        if args_length == 1:
+            if command == "help":
+                result = """list - get list of all connected users"""
+            elif command == "list":
+                copied = self.clients.copy()
+                for index, address in enumerate(copied):
+                    client = copied[address]
+                    result += "#{}: {} {} \n".format(index + 1, client.get_username(), address)
+            elif command == "uptime":
+                uptime = "%.2f" % (time.time() - self.start_time)
+                result = "{} seconds".format(uptime)
+            elif command == "stop":
+                result = "Stopping server..."
+                self.stop()
+            elif command == "restart":
+                result = "Restarting server..."
+                self.restart()
+
+        else:
+            command = args[0]
+
+            if command == "say":
+                result = ""
+                for address in self.clients.copy():
+                    self.server_socket.sendto(
+                        json.dumps({
+                            "status": "info",
+                            "from": self.SERVER_NAME,
+                            "text": " ".join(args[1:])
+                        }).encode(self.CHARSET),
+                        address
+                    )
+
+            elif command == "kick":
+                username = args[1]
+                copied = self.clients.copy()
+                for address in copied:
+                    client = copied[address]
+                    if client.get_username() == username:
+                        result = "{} ({}) has been kicked from the chat".format(client.get_username(), address)
+                        self.server_socket.sendto(json.dumps(handler.generate_error_message(True, "You have been kicked from the chat")).encode(self.CHARSET), address)
+                        self.__remove_user(address)
+                        break
+                else:
+                    result = "User with the given username ({}) has not been found".format(username)
+
+        print(result)

@@ -5,6 +5,6 @@
   "max_conns": 10,
   "max_length": 32,
   "charset": "utf-8",
-  "idle_time": 10,
+  "idle_time": 60,
   "server_name": "Server"
 }
