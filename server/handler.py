@@ -1,4 +1,5 @@
 import json
+import datetime
 
 def generate_error_message(fatal, text = "", value = ""):
     return {
@@ -6,5 +7,6 @@ def generate_error_message(fatal, text = "", value = ""):
         "fatal": fatal,
         "text": text,
         "value": value,
-        "from": "Server"
+        "from": "Server",
+        "date": str(datetime.datetime.utcnow())
     }

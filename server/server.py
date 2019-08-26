@@ -44,6 +44,22 @@ class Server:
     def __remove_user(self, address):
         del self.clients[address]
 
+    def __wrap_response(self, data):
+        return json.dumps(data).encode(self.CHARSET)
+
+    def __prepare_response(self, status, message_from, text):
+        return {
+            "status": status,
+            "from": message_from,
+            "text": text,
+            "date": str(datetime.datetime.utcnow())
+        }
+
+    def __send_public_message(self, response, address, status):
+        for client in self.clients.copy():
+            if client != address or status == "info":
+                self.server_socket.sendto(response, client)
+
     def __login_user(self, parsed_data, address):
 
         print("{} connected".format(address))
@@ -67,11 +83,7 @@ class Server:
 
         logger.log(text, "connections", address)
 
-        return {
-            "status": "info",
-            "from": self.SERVER_NAME,
-            "text": text
-        }
+        return self.__prepare_response("info", self.SERVER_NAME, text)
 
     def __proceed_message(self, parsed_data, address):
         client = self.clients[address]
@@ -99,11 +111,7 @@ class Server:
 
             logger.log(message, "messages", address)
 
-            return {
-                "status": "success",
-                "from": username,
-                "text": "[{}] {}".format(time_now, text)
-            }
+            return self.__prepare_response("success", username, "[{}] {}".format(time_now, text))
 
         elif type == "leave":
             self.__remove_user(address)
@@ -112,11 +120,7 @@ class Server:
 
             logger.log(text, "connections", address)
 
-            return {
-                "status": "info",
-                "from": username,
-                "text": text
-            }
+            return self.__prepare_response("info", username, text)
 
         elif type == "join":
             user = self.clients[address]
@@ -128,16 +132,7 @@ class Server:
 
             logger.log(text, "connections", address)
 
-            return {
-                "status": "info",
-                "from": self.SERVER_NAME,
-                "text": text
-            }
-
-    def __send_public_message(self, response, address, status):
-        for client in self.clients.copy():
-            if client != address or status == "info":
-                self.server_socket.sendto(response, client)
+            return self.__prepare_response("info", self.SERVER_NAME, text)
 
     def __run(self):
         self.shutdown = False
@@ -157,7 +152,7 @@ class Server:
 
             status = response["status"]
 
-            response = json.dumps(response).encode(self.CHARSET)
+            response = self.__wrap_response(response)
 
             if status == "error":
                 self.server_socket.sendto(response, address)
@@ -189,7 +184,7 @@ class Server:
             for address in self.clients.copy():
                 client = self.clients[address]
                 if time.time() - client.last_sent >= self.IDLE_TIME:
-                    message = json.dumps(handler.generate_error_message(True, "You have been idle for too long", "")).encode(self.CHARSET)
+                    message = self.__wrap_response(handler.generate_error_message(True, "You have been idle for too long", ""))
                     self.__remove_user(address)
                 else:
                     message = b'1'
@@ -246,14 +241,7 @@ class Server:
             if command == "say":
                 result = ""
                 for address in self.clients.copy():
-                    self.server_socket.sendto(
-                        json.dumps({
-                            "status": "info",
-                            "from": self.SERVER_NAME,
-                            "text": " ".join(args[1:])
-                        }).encode(self.CHARSET),
-                        address
-                    )
+                    self.server_socket.sendto(self.__wrap_response(self.__prepare_response("info", self.SERVER_NAME, " ".join(args[1:]))),address)
 
             elif command == "kick":
                 username = args[1]
@@ -262,7 +250,7 @@ class Server:
                     client = copied[address]
                     if client.get_username() == username:
                         result = "{} ({}) has been kicked from the chat".format(client.get_username(), address)
-                        self.server_socket.sendto(json.dumps(handler.generate_error_message(True, "You have been kicked from the chat")).encode(self.CHARSET), address)
+                        self.server_socket.sendto(self.__wrap_response(handler.generate_error_message(True, "You have been kicked from the chat")), address)
                         self.__remove_user(address)
                         break
                 else:
