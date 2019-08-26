@@ -39,7 +39,7 @@ class Server:
         self.clients[address] = client.Client(address, username)
 
     def __remove_user(self, address):
-        if address in self.clients:
+        if address in self.clients.copy():
             del self.clients[address]
 
     def __login_user(self, parsed_data, address):
@@ -53,7 +53,7 @@ class Server:
 
         username = parsed_data["username"]
 
-        for client in self.clients:
+        for client in self.clients.copy():
             if self.clients[client].get_username() == username:
                 return handler.generate_error_message(True, username + " is not a unique username")
 
@@ -131,7 +131,7 @@ class Server:
             }
 
     def __send_public_message(self, response, address, status):
-        for client in self.clients:
+        for client in self.clients.copy():
             if client != address or status == "info":
                 self.server_socket.sendto(response, client)
 
@@ -166,7 +166,7 @@ class Server:
         self.__main_thread__.join()
 
     def is_user_online(self, address):
-        for client_address in self.clients:
+        for client_address in self.clients.copy():
             if client_address[0] == address[0]:
                 return True
 
@@ -181,7 +181,6 @@ class Server:
                     message = b'1'
 
                 self.server_socket.sendto(message, address)
-
 
             time.sleep(1)
 
