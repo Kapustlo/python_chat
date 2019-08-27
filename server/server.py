@@ -2,13 +2,13 @@ import socket
 import threading
 import json
 import datetime
-import os
 import time
 import math
 
-import client
-import handler
 import logger
+
+from messanger import Messanger
+from usermanager import UserManager
 
 DEFAULT_MAX_CONNS = 10
 DEFAULT_BUF_SIZE = 1024
@@ -16,19 +16,18 @@ DEFAULT_MESSAGE_LENGTH = 32
 DEFAULT_CHARSET = "utf-8"
 DEFAILT_IDLE_TIME = math.inf
 
-class Server:
+class Server(Messanger, UserManager):
     def __init__(self, address, config):
+        super().__init__(config.get("charset") if config.get("charset") else DEFAULT_CHARSET)
+
         self.address = address
         self.shutdown = True
-
-        self.clients = {} # Keys are addresses (host:port) and values are Client objects
 
         self.__main_thread__ = None # Messages
         self.__secondary_thread__ = None # Connection checks
 
         self.start_time = None
 
-        self.CHARSET = config.get("charset") if config.get("charset") else DEFAULT_CHARSET
         self.BUF_SIZE = config.get("buf_size") if config.get("buf_size") else DEFAULT_BUF_SIZE
         self.MAX_MESSAGE_LENGTH = config.get("max_length") if config.get("max_length") else DEFAULT_MESSAGE_LENGTH
         self.MAX_CONNS = config.get("max_conns") if config.get("max_conns") else DEFAULT_MAX_CONNS
@@ -38,89 +37,46 @@ class Server:
     def _parse_response_data(self, data):
         return json.loads(data.decode(self.CHARSET))
 
-    def __add_user(self, address, username):
-        self.clients[address] = client.Client(address, username)
-
-    def __remove_user(self, address):
-        del self.clients[address]
-
-    def __wrap_response(self, data):
-        return json.dumps(data).encode(self.CHARSET)
-
-    def __prepare_response(self, status, message_from, text):
-        return {
-            "status": status,
-            "from": message_from,
-            "text": text,
-            "date": str(datetime.datetime.utcnow())
-        }
-
     def __send_public_message(self, response, address, status):
         for client in self.clients.copy():
             if client != address or status == "info":
                 self.server_socket.sendto(response, client)
 
-    def __login_user(self, parsed_data, address):
-
-        print("{} connected".format(address))
-
-        total_clients = len(self.clients.keys())
-
-        if total_clients > self.MAX_CONNS:
-            return handler.generate_error_message(True, "No room for you, too many users, sorry :(", self.MAX_CONNS)
-
-        username = parsed_data["username"]
-
-        copied = self.clients.copy()
-
-        for client in copied:
-            if copied[client].get_username() == username:
-                return handler.generate_error_message(True, "{} is not a unique username".format(username))
-
-        self.__add_user(address, username)
-
-        text = "{} joined | users online: {}".format(username, len(self.clients.keys()))
-
-        logger.log(text, "connections", address)
-
-        return self.__prepare_response("info", self.SERVER_NAME, text)
-
     def __proceed_message(self, parsed_data, address):
         client = self.clients[address]
         username = client.get_username()
-        print(parsed_data)
         type = parsed_data["type"]
 
         if type == "message":
             text = parsed_data["text"]
 
             if not len(text.strip()):
-                return handler.generate_error_message(False, "Empty messages have no meaning, your message was not sent :)")
+                return self._generate_error_message(False, self.SERVER_NAME, "Empty messages have no meaning, your message was not sent :)")
 
             if len(text) > self.MAX_MESSAGE_LENGTH:
-                return handler.generate_error_message(False, "Your message is too long, maximum length is {}".format(self.MAX_MESSAGE_LENGTH))
+                return self._generate_error_message(False, self.SERVER_NAME, "Your message is too long, maximum length is {}".format(self.MAX_MESSAGE_LENGTH))
 
             time_now = str(datetime.datetime.now()).split(".")[0]
 
             message = "{}: {}".format(username, text)
 
             if not client.send_message(message):
-                return handler.generate_error_message(False, "Too many requests, wait before sending another one")
+                return self._generate_error_message(False, self.SERVER_NAME, "Too many requests, wait before sending another one")
 
             print(message)
 
             logger.log(message, "messages", address)
 
-            return self.__prepare_response("success", username, "[{}] {}".format(time_now, text))
+            return self._prepare_response("success", username, "[{}] {}".format(time_now, text))
 
         elif type == "leave":
-            self.__remove_user(address)
+            self._remove_user(address)
 
             text = "{} left | total users: {}".format(username, len(self.clients.keys()))
 
             logger.log(text, "connections", address)
 
-            return self.__prepare_response("info", username, text)
+            return self._prepare_response("info", username, text)
 
         elif type == "join":
             user = self.clients[address]
@@ -132,7 +88,7 @@ class Server:
 
             logger.log(text, "connections", address)
 
-            return self.__prepare_response("info", self.SERVER_NAME, text)
+            return self._prepare_response("info", self.SERVER_NAME, text)
 
     def __run(self):
         self.shutdown = False
@@ -148,16 +104,41 @@ class Server:
                 response = self.__proceed_message(parsed_data, address) if self.is_user_online(address) else self.__login_user(parsed_data, address)
             except Exception as e:
                 print(e)
-                response = handler.generate_error_message(True, "Invalid data received")
+                response = self._generate_error_message(True, self.SERVER_NAME, "Invalid data received")
 
             status = response["status"]
 
-            response = self.__wrap_response(response)
+            response = self._wrap_response(response)
 
             if status == "error":
                 self.server_socket.sendto(response, address)
             else:
                 threading.Thread(target=self.__send_public_message, args=(response, address, status), daemon=True).start()
+
+    def __login_user(self, parsed_data, address):
+
+        print("{} connected".format(address))
+
+        total_clients = len(self.clients.keys())
+
+        if total_clients > self.MAX_CONNS:
+            return self._generate_error_message(True, self.SERVER_NAME, "No room for you, too many users, sorry :(", self.MAX_CONNS)
+
+        username = parsed_data["username"]
+
+        copied = self.clients.copy()
+
+        for client in copied:
+            if copied[client].get_username() == username:
+                return self._generate_error_message(True, self.SERVER_NAME, "{} is not a unique username".format(username))
+
+        self._add_user(address, username)
+
+        text = "{} joined | users online: {}".format(username, len(self.clients.keys()))
+
+        logger.log(text, "connections", address)
+
+        return self._prepare_response("info", self.SERVER_NAME, text)
 
     def stop(self):
         self.shutdown = True
@@ -172,20 +153,13 @@ class Server:
 
         self.start_time = None
 
-    def is_user_online(self, address):
-        for client_address in self.clients.copy():
-            if client_address[0] == address[0]:
-                return True
-        else:
-            return False
-
     def __send_checked(self):
         while not self.shutdown:
             for address in self.clients.copy():
                 client = self.clients[address]
                 if time.time() - client.last_sent >= self.IDLE_TIME:
-                    message = self.__wrap_response(handler.generate_error_message(True, "You have been idle for too long", ""))
-                    self.__remove_user(address)
+                    message = self._wrap_response(self._generate_error_message(True, self.SERVER_NAME, "You have been idle for too long", ""))
+                    self._remove_user(address)
                 else:
                     message = b'1'
 
@@ -248,7 +222,7 @@ kick *username* - kicks a user
                 message = " ".join(args[1:])
                 result = "[{}]: {}".format(self.SERVER_NAME, message)
                 for address in self.clients.copy():
-                    self.server_socket.sendto(self.__wrap_response(self.__prepare_response("info", self.SERVER_NAME, message)),address)
+                    self.server_socket.sendto(self._wrap_response(self._prepare_response("info", self.SERVER_NAME, message)),address)
 
             elif command == "kick":
                 username = args[1]
@@ -257,8 +231,8 @@ kick *username* - kicks a user
                     client = copied[address]
                     if client.get_username() == username:
                         result = "{} ({}) has been kicked from the chat".format(client.get_username(), address)
-                        self.server_socket.sendto(self.__wrap_response(handler.generate_error_message(True, "You have been kicked from the chat")), address)
-                        self.__remove_user(address)
+                        self.server_socket.sendto(self._wrap_response(self._generate_error_message(True, self.SERVER_NAME, "You have been kicked from the chat")), address)
+                        self._remove_user(address)
                         break
                 else:
                     result = "User with the given username ({}) has not been found".format(username)
