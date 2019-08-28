@@ -79,10 +79,9 @@ class Server(Messanger, UserManager):
             return self._prepare_response("info", username, text)
 
         elif type == "join":
-            user = self.clients[address]
-            old_username = user.get_username()
+            old_username = client.get_username()
             user.set_username(username)
-            self.clients[address] = user
+            self.clients[address] = client
 
             text = "{} reconnected as {}".format(old_username, username)
 
@@ -101,7 +100,14 @@ class Server(Messanger, UserManager):
 
             try:
                 parsed_data = self._parse_response_data(data)
-                response = self.__proceed_message(parsed_data, address) if self.is_user_online(address) else self.__login_user(parsed_data, address)
+                is_online = self.is_user_online(address)
+                if is_online and not address in self.clients:
+                    response = self._generate_error_message(True, self.SERVER_NAME, "You are already logged in")
+                elif is_online:
+                    response = self.__proceed_message(parsed_data, address)
+                else:
+                    response = self.__login_user(parsed_data, address)
+
             except Exception as e:
                 print(e)
                 response = self._generate_error_message(True, self.SERVER_NAME, "Invalid data received")
