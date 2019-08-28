@@ -37,13 +37,11 @@ class Chat(Server):
 
     def __help(self):
         return """
-(* is not required to type)
-
 list - get list of all connected users
 uptime - shows server uptime
 stop/restart - stops/restarts server
-say *message* - sends message to everyone in the chat
-kick *username* - kicks a user
+say message - sends message to everyone in the chat
+kick username - kicks a user
         """
 
     def __list(self):
