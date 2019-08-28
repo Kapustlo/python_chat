@@ -155,8 +155,9 @@ class Server(Messanger, UserManager):
 
     def __send_checked(self):
         while not self.shutdown:
-            for address in self.clients.copy():
-                client = self.clients[address]
+            copied = self.clients.copy()
+            for address in copied:
+                client = copied[address]
                 if time.time() - client.last_sent >= self.IDLE_TIME:
                     message = self._wrap_response(self._generate_error_message(True, self.SERVER_NAME, "You have been idle for too long", ""))
                     self._remove_user(address)
@@ -208,7 +209,7 @@ kick *username* - kicks a user
                 for index, address in enumerate(copied):
                     client = copied[address]
                     result += "#{}: {} {} \n".format(index + 1, client.get_username(), address)
-                    
+
             elif command == "uptime":
                 uptime = "%.2f" % (time.time() - self.start_time)
                 result = "{} seconds".format(uptime)
