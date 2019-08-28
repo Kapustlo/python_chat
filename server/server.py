@@ -140,6 +140,21 @@ class Server(Messanger, UserManager):
 
         return self._prepare_response("info", self.SERVER_NAME, text)
 
+    def __send_checked(self):
+        while not self.shutdown:
+            copied = self.clients.copy()
+            for address in copied:
+                client = copied[address]
+                if time.time() - client.last_sent >= self.IDLE_TIME:
+                    message = self._wrap_response(self._generate_error_message(True, self.SERVER_NAME, "You have been idle for too long"))
+                    self._remove_user(address)
+                else:
+                    message = b'1'
+
+                self.server_socket.sendto(message, address)
+
+            time.sleep(1)
+
     def stop(self):
         self.shutdown = True
         self.server_socket.close()
@@ -152,21 +167,6 @@ class Server(Messanger, UserManager):
         self.__secondary_thread__ = None
 
         self.start_time = None
-
-    def __send_checked(self):
-        while not self.shutdown:
-            copied = self.clients.copy()
-            for address in copied:
-                client = copied[address]
-                if time.time() - client.last_sent >= self.IDLE_TIME:
-                    message = self._wrap_response(self._generate_error_message(True, self.SERVER_NAME, "You have been idle for too long", ""))
-                    self._remove_user(address)
-                else:
-                    message = b'1'
-
-                self.server_socket.sendto(message, address)
-
-            time.sleep(1)
 
     def start(self):
         print("Starting server {}:{}".format(self.address[0], self.address[1]))
