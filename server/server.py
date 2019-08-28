@@ -183,7 +183,7 @@ class Server(Messanger, UserManager):
         if ip == "localhost":
             ip = "127.0.0.1"
 
-        print("Starting server ({}:{})".format(ip, self.address[1]))
+        print("Starting server...")
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.server_socket.bind(address)
@@ -196,7 +196,7 @@ class Server(Messanger, UserManager):
 
         self.start_time = time.time()
 
-        print("Server started")
+        print("Server started ({}:{})".format(ip, port))
 
     def restart(self):
         self.stop()
