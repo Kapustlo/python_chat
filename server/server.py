@@ -201,3 +201,4 @@ class Server(Messanger, UserManager):
     def restart(self):
         self.stop()
         self.start()
+        print("Server restarted")
