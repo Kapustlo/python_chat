@@ -134,9 +134,8 @@ class Server(Messanger, UserManager):
 
         copied = self.clients.copy()
 
-        for client in copied:
-            if copied[client].get_username() == username:
-                return self._generate_error_message(True, self.SERVER_NAME, "{} is not a unique username".format(username))
+        if not self.is_username_unique(username):
+            return self._generate_error_message(True, self.SERVER_NAME, "{} is not a unique username".format(username))
 
         self._add_user(address, username)
 

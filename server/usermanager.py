@@ -9,6 +9,15 @@ class UserManager:
     def _remove_user(self, address):
         del self.clients[address]
 
+    def is_username_unique(self, username):
+        copied = self.clients.copy()
+        for address in copied:
+            client = copied[address]
+            if client.get_username() == username:
+                return False
+
+        return True
+
     def is_user_online(self, address):
         for client_address in self.clients.copy():
             if client_address[0] == address[0]:
