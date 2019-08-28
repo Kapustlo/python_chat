@@ -173,6 +173,8 @@ class Server(Messanger, UserManager):
 
         self.start_time = None
 
+        print("Server stopped")
+
     def start(self):
         print("Starting server {}:{}".format(self.address[0], self.address[1]))
 
@@ -186,6 +188,8 @@ class Server(Messanger, UserManager):
         self.__secondary_thread__.start()
 
         self.start_time = time.time()
+
+        print("Server started")
 
     def restart(self):
         self.stop()
