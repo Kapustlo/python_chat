@@ -31,12 +31,12 @@ kick *username* - kicks a user
         return "{} seconds".format(uptime)
 
     def __stop(self):
+        print("Stopping server...")
         self.stop()
-        return "Stopping server..."
 
     def __restart(self):
+        print("Restarting server...")
         self.restart()
-        return "Restarting server..."
 
     def __say(self, message):
         for address in self.clients.copy():
@@ -83,4 +83,5 @@ kick *username* - kicks a user
             username = args[1]
             result = self.__kick(username)
 
-        print(result)
+        if result:
+            print(result)
