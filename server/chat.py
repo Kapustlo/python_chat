@@ -62,28 +62,25 @@ kick *username* - kicks a user
         args = command.split(" ")
         args_length = len(args)
 
+        command = args[0]
+
         result = "'{}' is an invalid command, use 'help' for help".format(command)
 
-        if args_length == 1:
-            if command == "help":
-                result = self.__help()
-            elif command == "list":
-                result = self.__list()
-            elif command == "uptime":
-                result = self.__uptime()
-            elif command == "stop":
-                result = self.__stop()
-            elif command == "restart":
-                result = self.__restart()
-        else:
-            command = args[0]
-
-            if command == "say":
-                message = " ".join(args[1:])
-                result = self.__say(message)
-
-            elif command == "kick":
-                username = args[1]
-                result = self.__kick(username)
+        if command == "help":
+            result = self.__help()
+        elif command == "list":
+            result = self.__list()
+        elif command == "uptime":
+            result = self.__uptime()
+        elif command == "stop":
+            result = self.__stop()
+        elif command == "restart":
+            result = self.__restart()
+        elif command == "say":
+            message = " ".join(args[1:])
+            result = self.__say(message)
+        elif command == "kick":
+            username = args[1]
+            result = self.__kick(username)
 
         print(result)
