@@ -28,5 +28,5 @@ class UserManager:
     def drop_clients(self):
         self.clients = {}
 
-    def total_clients():
+    def total_clients(self):
         return len(self.clients.keys())
