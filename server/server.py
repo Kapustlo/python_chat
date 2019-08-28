@@ -176,10 +176,17 @@ class Server(Messanger, UserManager):
         print("Server stopped")
 
     def start(self):
-        print("Starting server {}:{}".format(self.address[0], self.address[1]))
+        address = self.address
+
+        ip, port = address
+
+        if ip == "localhost":
+            ip = "127.0.0.1"
+
+        print("Starting server ({}:{})".format(ip, self.address[1]))
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.server_socket.bind(self.address)
+        self.server_socket.bind(address)
 
         self.__main_thread__ = threading.Thread(target = self.__run, daemon=True)
         self.__main_thread__.start()
