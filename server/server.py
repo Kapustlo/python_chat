@@ -72,7 +72,7 @@ class Server(Messanger, UserManager):
         elif type == "leave":
             self._remove_user(address)
 
-            text = "{} left | total users: {}".format(username, len(self.clients.keys()))
+            text = "{} left | total users: {}".format(username, self.total_clients())
 
             logger.log(text, "connections", address)
 
@@ -125,7 +125,7 @@ class Server(Messanger, UserManager):
 
         print("{} connected".format(address))
 
-        total_clients = len(self.clients.keys())
+        total_clients = self.total_clients()
 
         if total_clients > self.MAX_CONNS:
             return self._generate_error_message(True, self.SERVER_NAME, "No room for you, too many users, sorry :(", self.MAX_CONNS)
@@ -139,7 +139,7 @@ class Server(Messanger, UserManager):
 
         self._add_user(address, username)
 
-        text = "{} joined | users online: {}".format(username, len(self.clients.keys()))
+        text = "{} joined | users online: {}".format(username, self.total_clients())
 
         logger.log(text, "connections", address)
 
@@ -166,7 +166,7 @@ class Server(Messanger, UserManager):
         self.__main_thread__.join()
         self.__secondary_thread__.join()
 
-        self.clients = {}
+        self.drop_clients()
 
         self.__main_thread__ = None
         self.__secondary_thread__ = None
