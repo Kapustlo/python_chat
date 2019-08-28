@@ -1,6 +1,6 @@
 import socket, json, datetime
 
-import server
+import chat
 
 if __name__ == "__main__":
     with open("json/config.json", "r") as file:
@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     connection_data = (HOST, PORT)
 
-    chat_server = server.Server(connection_data, config)
+    chat_server = chat.Chat(connection_data, config)
 
     chat_server.start()
 
