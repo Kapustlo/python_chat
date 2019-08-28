@@ -7,8 +7,8 @@ import math
 
 import logger
 
-from messanger import Messanger
-from usermanager import UserManager
+from managers.messanger import Messanger
+from managers.usermanager import UserManager
 
 DEFAULT_MAX_CONNS = 10
 DEFAULT_BUF_SIZE = 1024
