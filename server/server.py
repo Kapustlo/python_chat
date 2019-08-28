@@ -202,9 +202,13 @@ kick *username* - kicks a user
                 """
             elif command == "list":
                 copied = self.clients.copy()
+                if not len(copied):
+                    result = "No users"
+
                 for index, address in enumerate(copied):
                     client = copied[address]
                     result += "#{}: {} {} \n".format(index + 1, client.get_username(), address)
+                    
             elif command == "uptime":
                 uptime = "%.2f" % (time.time() - self.start_time)
                 result = "{} seconds".format(uptime)
