@@ -2,6 +2,35 @@ import time
 
 from server import Server
 
+def parse_seconds(difference):
+    years = months = weeks = days = hours = minutes = seconds = milliseconds = 0
+
+    uptime = "%.2f" % (difference)
+
+    seconds, milliseconds = uptime.split(".")
+
+    seconds = int(seconds)
+    milliseconds = int(milliseconds)
+
+    minutes = seconds / 60 if seconds >= 60 else 0
+
+    minutes = int(seconds / 60)
+    seconds -= minutes * 60
+
+    hours = int(seconds / 3600)
+    minutes -= hours * 60
+
+    days = int(seconds / 86400)
+    hours -= days * 24
+
+    weeks = int(seconds / 604800)
+    days -= weeks * 7
+
+    years = int(seconds / 31536000)
+    weeks -= years * 12
+
+    return (years, months, weeks, days, hours, minutes, seconds, milliseconds)
+
 class Chat(Server):
     def __init__(self, address, config):
         super().__init__(address, config)
@@ -10,7 +39,7 @@ class Chat(Server):
         return """
 list - get list of all connected users
 uptime - shows server uptime
-stop/start/restart - stops/starts/restarts server
+stop/restart - stops/starts/restarts server
 say *message* - sends message to everyone in the chat (* is not required)
 kick *username* - kicks a user
         """
@@ -27,8 +56,24 @@ kick *username* - kicks a user
         return result
 
     def __uptime(self):
-        uptime = "%.2f" % (time.time() - self.start_time)
-        return "{} seconds".format(uptime)
+        parsed_times = parse_seconds(time.time() - self.start_time)
+
+        names = ("years", "months", "weeks", "days", "hours", "minutes", "seconds", "milliseconds")
+
+        years, months, weeks, days, hours, minutes, seconds, milliseconds = parsed_times
+
+        if years:
+            result = "{} years, {} months".format(years, months)
+        elif months:
+            result = "{} months, {} weeks".format(months, weeks)
+        elif weeks:
+            result = "{} weeks, {} days".format(weeks, days)
+        elif days:
+            result = "{} days, {} hours".format(days, hours)
+        else:
+            result = "{}:{}:{}.{}".format(hours, minutes, seconds, milliseconds)
+
+        return result
 
     def __stop(self):
         print("Stopping server...")
