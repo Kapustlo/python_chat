@@ -69,7 +69,7 @@ class Client(Messanger):
 
         print("Disconnected")
 
-    def __login(self, username):
+    def __log_in(self, username):
         self.joined = True
 
         self.socket_server.sendto(
@@ -99,7 +99,7 @@ class Client(Messanger):
             self.__main_thread__ = threading.Thread(target=self.__receiver, args=(self.socket_server,))
             self.__main_thread__.start()
 
-            self.__login(self.username)
+            self.__log_in(self.username)
 
             while not self.shutdown:
                 if self.connected:
