@@ -1,3 +1,5 @@
+import json
+
 class Messanger:
     def __init__(self, charset):
         self.CHARSET = charset
