@@ -1,12 +1,15 @@
 import socket
 import threading
 import time
-import json
+
+from messanger import Messanger
 
 DEFAULT_CHARSET = "utf-8"
 
-class Client:
+class Client(Messanger):
     def __init__(self, username, address, server, config):
+        super().__init__(config.get("charset") if config.get("charset") else DEFAULT_CHARSET)
+
         self.username = username
 
         self.address = address
@@ -15,11 +18,7 @@ class Client:
         self.config = config
 
         self.shutdown = True
-        self.joined = False
-        self.connected = False
-        self.failed = False
-
-        self.CHARSET = config.get("charset") if config.get("charset") else DEFAULT_CHARSET
+        self.connected = self.failed = self.joined = False
 
         self.timeout = 5
 
@@ -31,9 +30,6 @@ class Client:
         text = data["text"]
 
         return "[{}]: {}".format(username, text)
-
-    def _parse_response_data(self, data):
-        return json.loads(data.decode(self.CHARSET))
 
     def __receiver(self, sock):
         print("Trying to connect to the server...")
@@ -64,7 +60,7 @@ class Client:
                     else:
                         self.last_received = time.time()
 
-                except Exception as e:
+                except:
                     break
 
     def stop(self):
@@ -77,11 +73,13 @@ class Client:
         self.joined = True
 
         self.socket_server.sendto(
-            json.dumps({
-                "type": "join",
-                "username": self.username,
-                "from": self.username
-            }).encode(self.CHARSET),
+            self._wrap_message(
+                {
+                    "type": "join",
+                    "username": self.username,
+                    "from": self.username
+                }
+            ),
             self.server
         )
 
@@ -120,7 +118,7 @@ class Client:
 
                         self.stop()
 
-                    self.socket_server.sendto(json.dumps(data).encode(self.CHARSET), self.server)
+                    self.socket_server.sendto(self._wrap_message(data), self.server)
 
                     self.last_sent = time.time()
 
