@@ -1,4 +1,7 @@
-import socket, json, datetime
+import socket
+import json
+import datetime
+import sys
 
 import chat
 
@@ -6,8 +9,12 @@ if __name__ == "__main__":
     with open("json/config.json", "r") as file:
         config = json.loads(file.read())
 
-    HOST = config.get("host")
-    PORT = config.get("port")
+    try:
+        _, HOST, PORT = sys.argv
+        PORT = int(PORT)
+    except:
+        HOST = config.get("host")
+        PORT = config.get("port")
 
     connection_data = (HOST, PORT)
 
