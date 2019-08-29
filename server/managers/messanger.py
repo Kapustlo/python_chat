@@ -14,12 +14,7 @@ class Messanger:
         }
 
     def _prepare_response(self, status, message_from, text):
-        return {
-            "status": status,
-            "from": message_from,
-            "text": text,
-            "date": str(datetime.datetime.utcnow())
-        }
+        return self.__prepare_message_body(status, message_from, text)
 
     def _generate_error_message(self, fatal, message_from, text = ""):
         response = self.__prepare_message_body("error", message_from, text)
@@ -29,3 +24,6 @@ class Messanger:
 
     def _wrap_response(self, data):
         return json.dumps(data).encode(self.CHARSET)
+
+    def _parse_response_data(self, data):
+        return json.loads(data.decode(self.CHARSET))

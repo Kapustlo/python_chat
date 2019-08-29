@@ -1,6 +1,5 @@
 import socket
 import threading
-import json
 import datetime
 import time
 import math
@@ -23,16 +22,13 @@ class Server(Messanger, UserManager):
         self.address = address
         self.shutdown = True
 
-        self.start_time = self.__secondary_thread__ = self.__main_thread__ = None 
+        self.start_time = self.__secondary_thread__ = self.__main_thread__ = None
 
         self.BUF_SIZE = config.get("buf_size") if config.get("buf_size") else DEFAULT_BUF_SIZE
         self.MAX_MESSAGE_LENGTH = config.get("max_length") if config.get("max_length") else DEFAULT_MESSAGE_LENGTH
         self.MAX_CONNS = config.get("max_conns") if config.get("max_conns") else DEFAULT_MAX_CONNS
         self.IDLE_TIME = config.get("idle_time") if config.get("idle_time") else DEFAILT_IDLE_TIME
         self.SERVER_NAME = config.get("server_name") if config.get("server_name") else ""
-
-    def _parse_response_data(self, data):
-        return json.loads(data.decode(self.CHARSET))
 
     def __send_public_message(self, response, address, status):
         for client in self.clients.copy():
