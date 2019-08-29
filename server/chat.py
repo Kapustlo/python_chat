@@ -1,35 +1,7 @@
 import time
+import datetime
 
 from server import Server
-
-def parse_seconds(difference):
-    years = months = weeks = days = hours = minutes = seconds = milliseconds = 0
-
-    uptime = "%.2f" % (difference)
-
-    seconds, milliseconds = uptime.split(".")
-
-    seconds = int(seconds)
-    milliseconds = int(milliseconds)
-
-    minutes = seconds / 60 if seconds >= 60 else 0
-
-    minutes = int(seconds / 60)
-    seconds -= minutes * 60
-
-    hours = int(seconds / 3600)
-    minutes -= hours * 60
-
-    days = int(seconds / 86400)
-    hours -= days * 24
-
-    weeks = int(seconds / 604800)
-    days -= weeks * 7
-
-    years = int(seconds / 31536000)
-    weeks -= years * 12
-
-    return (years, months, weeks, days, hours, minutes, seconds, milliseconds)
 
 class Chat(Server):
     def __init__(self, address, config):
@@ -56,24 +28,7 @@ kick username - kicks a user
         return result
 
     def __uptime(self):
-        parsed_times = parse_seconds(time.time() - self.start_time)
-
-        names = ("years", "months", "weeks", "days", "hours", "minutes", "seconds", "milliseconds")
-
-        years, months, weeks, days, hours, minutes, seconds, milliseconds = parsed_times
-
-        if years:
-            result = "{} years, {} months".format(years, months)
-        elif months:
-            result = "{} months, {} weeks".format(months, weeks)
-        elif weeks:
-            result = "{} weeks, {} days".format(weeks, days)
-        elif days:
-            result = "{} days, {} hours".format(days, hours)
-        else:
-            result = "{}:{}:{}.{}".format(hours, minutes, seconds, milliseconds)
-
-        return result
+        return "Uptime: {}".format(str(datetime.timedelta(seconds = time.time() - self.start_time)))
 
     def __stop(self):
         print("Stopping server...")
