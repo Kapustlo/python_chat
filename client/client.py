@@ -65,7 +65,7 @@ class Client(Messanger):
 
     def stop(self):
         self.shutdown = True
-        self.joined = False
+        self.connected = self.joined = False
 
         print("Disconnected")
 
@@ -84,49 +84,43 @@ class Client(Messanger):
         )
 
     def run(self):
-        try:
-            self.start_time = time.time()
+        self.start_time = time.time()
 
-            print("Opening a socket...")
-            self.socket_server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self.socket_server.bind(self.address)
-            self.socket_server.setblocking(0)
-            socket_address = self.socket_server.getsockname()
-            print("Opened socket on {}:{}".format(socket_address[0], socket_address[1]))
+        print("Opening a socket...")
+        self.socket_server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.socket_server.bind(self.address)
+        self.socket_server.setblocking(0)
+        socket_address = self.socket_server.getsockname()
+        print("Opened socket on {}:{}".format(socket_address[0], socket_address[1]))
 
-            self.shutdown = False
+        self.shutdown = False
 
-            self.__main_thread__ = threading.Thread(target=self.__receiver, args=(self.socket_server,))
-            self.__main_thread__.start()
+        self.__main_thread__ = threading.Thread(target=self.__receiver, args=(self.socket_server,))
+        self.__main_thread__.start()
 
-            self.__log_in(self.username)
+        self.__log_in(self.username)
 
-            while not self.shutdown:
-                if self.connected:
-                    try:
-                        message = input()
-                        data = {
-                            "type": "message",
-                            "text": message,
-                            "from": self.username
-                        }
-                    except KeyboardInterrupt:
-                        data = {
-                            "type": "leave",
-                            "from": self.username
-                        }
+        while not self.shutdown:
+            if self.connected:
+                try:
+                    message = input()
+                    data = {
+                        "type": "message",
+                        "text": message,
+                        "from": self.username
+                    }
+                except KeyboardInterrupt:
+                    data = {
+                        "type": "leave",
+                        "from": self.username
+                    }
 
-                        self.stop()
+                    self.stop()
 
-                    self.socket_server.sendto(self._wrap_message(data), self.server)
+                self.socket_server.sendto(self._wrap_message(data), self.server)
 
-                    self.last_sent = time.time()
+                self.last_sent = time.time()
 
-            self.__main_thread__.join()
+        self.__main_thread__.join()
 
-            self.connected = False
-
-            self.socket_server.close()
-
-        except KeyboardInterrupt:
-            self.stop()
+        self.socket_server.close()
