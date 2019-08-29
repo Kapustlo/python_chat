@@ -23,10 +23,7 @@ class Server(Messanger, UserManager):
         self.address = address
         self.shutdown = True
 
-        self.__main_thread__ = None # Messages
-        self.__secondary_thread__ = None # Connection checks
-
-        self.start_time = None
+        self.start_time = self.__secondary_thread__ = self.__main_thread__ = None 
 
         self.BUF_SIZE = config.get("buf_size") if config.get("buf_size") else DEFAULT_BUF_SIZE
         self.MAX_MESSAGE_LENGTH = config.get("max_length") if config.get("max_length") else DEFAULT_MESSAGE_LENGTH
