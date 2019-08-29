@@ -21,5 +21,6 @@ if __name__ == "__main__":
             if len(command.strip()):
                 chat_server.command(command)
         except KeyboardInterrupt:
+            print("Stopping server...")
             chat_server.stop()
             break
