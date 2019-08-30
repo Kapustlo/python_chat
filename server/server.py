@@ -125,6 +125,9 @@ class Server(Messanger, UserManager):
 
         username = parsed_data["username"]
 
+        if not len(username.strip()):
+            return self._generate_error_message(True, self.SERVER_NAME, "Username must not be empty")
+
         copied = self.clients.copy()
 
         if not self.is_username_unique(username):
