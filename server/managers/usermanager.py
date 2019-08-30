@@ -4,10 +4,17 @@ class UserManager:
     clients = {}
 
     def _add_user(self, address, username):
-        self.clients[address] = client.Client(address, username)
+        user = client.Client(address, username)
+        self.clients[address] = user
+
+        return user
 
     def _remove_user(self, address):
-        del self.clients[address]
+        try:
+            del self.clients[address]
+            return True
+        except:
+            return False
 
     def is_username_unique(self, username):
         copied = self.clients.copy()
